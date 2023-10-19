@@ -4,21 +4,39 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
 
 /**
- * @author Group 6
+ * @author Group 2
  */
 
 public class Main {
 
-    public static void main(String[] args) throws InterruptedException {
-        JDABuilder jdaBuilder = JDABuilder.createDefault("MTE2MzkzNTUzNTc4MjQ0MTA2MA.GmXHj8.JyXXTZvCJzOYt3K8sFQdsfFH1LfQWV8Hq0T5GA");
-        JDA jda = jdaBuilder.setActivity((Activity.watching("you"))).addEventListeners(new Commands()).build().awaitReady();
+    public static void main(String[] args) throws FileNotFoundException, InterruptedException {
+        // Read in the bot key from the file "BOT_KEY" in the project root directory ("CryptoBot/")
+        // Note that you need to add this file in as it's included in the .gitignore
+        Scanner keyReader = new Scanner(new File("BOT_KEY"));
+        String TOKEN = keyReader.nextLine();
+
+
+        JDABuilder jdaBuilder = JDABuilder.createDefault(TOKEN);
+        JDA jda = jdaBuilder.setActivity((Activity.watching("you"))).addEventListeners(new CryptoBot()).build();
+        jda.awaitReady();
 
         Guild guild = jda.getGuildById("1157522711715790858");
 
-        if (guild != null){
-            guild.upsertCommand("hi", "testing").queue();
+        if (guild != null) {
+            guild.updateCommands()
+                    .addCommands(Commands.slash("hi", "testing"))
+                    .addCommands(Commands.slash("hash", "find the hash of an input")
+                            .addOption(OptionType.STRING, "hash_func", "The hash function (sha256, sha512)")
+                            .addOption(OptionType.STRING, "input_string", "The text to be hashed"))
+                    .queue();
         }
 
     }
