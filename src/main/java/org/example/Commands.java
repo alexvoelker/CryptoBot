@@ -4,102 +4,201 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
+import javax.crypto.*;
+import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.util.ArrayList;
+import java.util.Base64;
 
 public class Commands extends ListenerAdapter {
-    ArrayList<Message> messages = new ArrayList<Message>();
+
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent e) {
-        if(e.getName().equals("hi")){
-            e.reply("hi").queue();
-        }
-        if(e.getName().equals("s2b")){
-            OptionMapping messageOption = e.getOption("string");
-            byte[] bytes = messageOption.getAsString().getBytes();
-            e.reply(DatatypeConverter.printBase64Binary(bytes)).queue();
-        }
-        if(e.getName().equals("b2s")){
-            OptionMapping messageOption = e.getOption("base64");
-            String reply = new String(DatatypeConverter.parseBase64Binary(messageOption.getAsString()));
-            e.reply(reply).queue();
-        }
-        if(e.getName().equals("s2h")){
-            OptionMapping messageOption = e.getOption("string");
-            byte[] bytes = messageOption.getAsString().getBytes();
-            e.reply(DatatypeConverter.printHexBinary(bytes)).queue();
-        }
-        if(e.getName().equals("h2s")){
-            OptionMapping messageOption = e.getOption("hex");
-            String reply = new String(DatatypeConverter.parseHexBinary(messageOption.getAsString()));
-            e.reply(reply).queue();
-        }
-        if(e.getName().equals("s2bits")){
-            OptionMapping messageOption = e.getOption("string");
-            String str = messageOption.getAsString();
-            String bits = "";
-            String value = "";
-            for(int i = 0; i < str.length(); i++){
-                value = String.format("%8s", Integer.toBinaryString(str.charAt(i))).replaceAll(" ", "0");
-                bits += value + " ";
-            }
-            e.reply(bits).queue();
-        }
-        if(e.getName().equals("bits2s")){
-            OptionMapping messageOption = e.getOption("bits");
-            String bits = messageOption.getAsString().replaceAll(" ", "");
-            byte[] bytes = new byte[bits.length() / 8];
-            for(int i = 0; i < bits.length()-7; i+=8){
-                bytes[i/8] = (byte) Integer.parseInt(bits.substring(i,i+8),2);
-            }
-            String str = new String(bytes, StandardCharsets.UTF_8);
-            e.reply(str).queue();
-        }
-        if(e.getName().equals("create")){
-            OptionMapping messageOption = e.getOption("msg");
-            Message message = new Message(messageOption.getAsString());
-            messages.add(message);
-            e.reply("Your message ID is: " + message.getId()).queue();
-        }
-        if(e.getName().equals("encrypt")){
-            OptionMapping messageOption = e.getOption("id");
-            String id = messageOption.getAsString();
-            Message message = null;
-            for(int i = 0; i < messages.size(); i++){
-                if(messages.get(i).getId().equals(id)){
-                    message = messages.get(i);
+        switch (e.getName()) {
+            case "hi":
+                e.reply("hi").queue();
+                break;
+            case "convert":
+                String type1 = e.getOption("type1").getAsString();
+                String type2 = e.getOption("type2").getAsString();
+                String data = e.getOption("data").getAsString();
+
+                if (type1.equalsIgnoreCase("bits")) {
+                    e.reply(convertBits(type2.toLowerCase(), data)).queue();
+                } else if (type1.equalsIgnoreCase("string")) {
+                    e.reply(convertString(type2.toLowerCase(), data)).queue();
+                } else if (type1.equalsIgnoreCase("hex")) {
+                    e.reply(convertHex(type2.toLowerCase(), data)).queue();
+                } else if (type1.equalsIgnoreCase("base64")) {
+                    e.reply(convertBase64(type2.toLowerCase(), data)).queue();
+                } else {
+                    e.reply("Incorrect value: \"" + type1 + "\" does not match Bits, String, Hex, or Base64.").queue();
                 }
-            }
-            if(message == null) {
-                e.reply("Message with ID of \"" + id + "\" cannot be found.").queue();
-            } else {
+                break;
+            case "encrypt":
+                String message = (e.getOption("message").getAsString());
+                String aes = e.getOption("aes").getAsString();
+                SecretKey key;
+
+                if (!aes.equalsIgnoreCase("AES-128") && !aes.equalsIgnoreCase("AES-192") && !aes.equalsIgnoreCase("AES-256")) {
+                    e.reply("Invalid encryption method: \"" + aes + "\" does not match AES-128, AES-192, or AES-256.").queue();
+                } else {
+                    try {
+                        if (e.getOption("key") != null) {
+                            byte[] keyData = e.getOption("key").getAsString().getBytes();
+                            key = new SecretKeySpec(keyData, 0, keyData.length, "AES");
+                        } else {
+                            key = generateKey(Integer.parseInt(aes.substring(4)));
+                        }
+
+                        byte[] encodedKey = key.getEncoded();
+                        String keyAsString = Base64.getEncoder().encodeToString(encodedKey);
+
+                        e.reply("Your encrypted message is: " + encryptMessage(key, message) + "\n\nYour secret key is: ||" + keyAsString + "||").queue();
+                    } catch (GeneralSecurityException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                break;
+            case "decrypt":
+                message = e.getOption("message").getAsString();
+
                 try {
-                    e.reply("Your encrypted message is: " + message.encryptMessage()).queue();
+                    byte[] secretKeyBytes = Base64.getDecoder().decode(e.getOption("key").getAsString());
+                    key = new SecretKeySpec(secretKeyBytes, "AES");
+
+                    e.reply("Your decrypted message is: ||" + decryptMessage(key, message) + "||").queue();
                 } catch (GeneralSecurityException ex) {
                     throw new RuntimeException(ex);
                 }
-            }
+                break;
         }
-        if(e.getName().equals("decrypt")){
-            OptionMapping messageOption = e.getOption("id");
-            String id = messageOption.getAsString();
-            Message message = null;
-            for(int i = 0; i < messages.size(); i++){
-                if(messages.get(i).getId().equals(id)){
-                    message = messages.get(i);
-                }
-            }
-            if(message == null) {
-                e.reply("Message with ID of \"" + id + "\" cannot be found.").queue();
-            } else {
-                try {
-                    e.reply("Your decrypted message is: " + message.decryptMessage()).queue();
-                } catch (GeneralSecurityException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }
+    }
+
+    public String convertBits(String type, String data) {
+        switch (type) {
+            case "base64":
+                return stringToBase64(bitsToString(data));
+            case "hex":
+                return stringToHex(bitsToString(data));
+            case "string":
+                return bitsToString(data);
+            case "bits":
+                return data;
         }
+        return ("Incorrect value: \"" + type + "\" does not match Bits, String, Hex, or Base64.");
+    }
+
+    public String convertString(String type, String data) {
+        switch (type) {
+            case "base64":
+                return stringToBase64(data);
+            case "hex":
+                return stringToHex(data);
+            case "string":
+                return data;
+            case "bits":
+                return stringToBits(data);
+        }
+        return ("Incorrect value: \"" + type + "\" does not match Bits, String, Hex, or Base64.");
+    }
+
+    public String convertHex(String type, String data) {
+        switch (type) {
+            case "base64":
+                return stringToBase64(hexToString(data));
+            case "hex":
+                return data;
+            case "string":
+                return hexToString(data);
+            case "bits":
+                return stringToBits(hexToString(data));
+        }
+        return ("Incorrect value: \"" + type + "\" does not match Bits, String, Hex, or Base64.");
+    }
+
+    public String convertBase64(String type, String data) {
+        switch (type) {
+            case "base64":
+                return data;
+            case "hex":
+                return stringToHex(base64ToString(data));
+            case "string":
+                return base64ToString(data);
+            case "bits":
+                return stringToBits(base64ToString(data));
+        }
+        return ("Incorrect value: \"" + type + "\" does not match Bits, String, Hex, or Base64.");
+    }
+
+    public String bitsToString(String bits) {
+        bits = bits.replaceAll(" ", "");
+        byte[] bytes = new byte[bits.length() / 8];
+
+        for (int i = 0; i < bits.length() - 7; i += 8) {
+            bytes[i / 8] = (byte) Integer.parseInt(bits.substring(i, i + 8), 2);
+        }
+
+        String str = new String(bytes, StandardCharsets.UTF_8);
+        return str;
+    }
+
+    public String stringToBits(String str) {
+        String bits = "";
+        String value = "";
+
+        for (int i = 0; i < str.length(); i++) {
+            value = String.format("%8s", Integer.toBinaryString(str.charAt(i))).replaceAll(" ", "0");
+            bits += value + " ";
+        }
+
+        return bits;
+    }
+
+    public String hexToString(String hex) {
+        return new String(DatatypeConverter.parseHexBinary(hex));
+    }
+
+    public String stringToHex(String str) {
+        byte[] bytes = str.getBytes();
+        return DatatypeConverter.printHexBinary(bytes);
+    }
+
+    public String base64ToString(String base64) {
+        return new String(DatatypeConverter.parseBase64Binary(base64));
+    }
+
+    public String stringToBase64(String str) {
+        byte[] bytes = str.getBytes();
+        return DatatypeConverter.printBase64Binary(bytes);
+    }
+
+    public SecretKey generateKey(int aes) throws NoSuchAlgorithmException {
+        KeyGenerator generator = KeyGenerator.getInstance("AES");
+        generator.init(aes);
+        SecretKey key = generator.generateKey();
+        return key;
+    }
+
+    public String encryptMessage(SecretKey inputKey, String message) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.ENCRYPT_MODE, inputKey);
+        byte[] encryptedBytes = cipher.doFinal(message.getBytes());
+
+        return Base64.getEncoder().encodeToString(encryptedBytes);
+    }
+
+    public static String decryptMessage(SecretKey key, String message) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, NoSuchAlgorithmException {
+        byte[] encryptedBytes = Base64.getDecoder().decode(message);
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, key);
+        byte[] decryptedBytes = cipher.doFinal(encryptedBytes);
+
+        return new String(decryptedBytes);
     }
 }

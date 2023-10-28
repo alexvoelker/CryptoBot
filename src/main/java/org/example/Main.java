@@ -28,16 +28,23 @@ public class Main {
         Guild guild = jda.getGuildById("1157522711715790858");
 
         if (guild != null){
+            //testing command
             guild.upsertCommand("hi", "testing").queue();
-            guild.upsertCommand("s2b", "String to Base64").addOption(OptionType.STRING,"string", "String to be converted", true).queue();
-            guild.upsertCommand("b2s", "Base64 to String").addOption(OptionType.STRING,"base64", "Base64 to be converted", true).queue();
-            guild.upsertCommand("s2h", "String to Hex").addOption(OptionType.STRING,"string", "String to be converted", true).queue();
-            guild.upsertCommand("h2s", "Hexadecimal to String").addOption(OptionType.STRING,"hex", "Hexadecimal to be converted", true).queue();
-            guild.upsertCommand("s2bits", "String to Bits").addOption(OptionType.STRING,"string", "String to be converted", true).queue();
-            guild.upsertCommand("bits2s", "Bits to UTF-8 String").addOption(OptionType.STRING,"bits", "Bits to be converted", true).queue();
-            guild.upsertCommand("create", "Create a message").addOption(OptionType.STRING,"msg", "Message", true).queue();
-            guild.upsertCommand("encrypt", "Encrypt a message").addOption(OptionType.STRING,"id", "ID of Message", true).queue();
-            guild.upsertCommand("decrypt", "Decrypt a message").addOption(OptionType.STRING,"id", "ID of Message", true).queue();
+
+            //datatype conversions
+            guild.upsertCommand("convert", "Convert data from Type1 to Type2")
+                    .addOption(OptionType.STRING,"type1", "Input data type", true)
+                    .addOption(OptionType.STRING,"type2", "Output data type", true)
+                    .addOption(OptionType.STRING,"data", "Data to be converted", true).queue();
+
+            //AES symmetric key encryption
+            guild.upsertCommand("encrypt", "Encrypt a message")
+                    .addOption(OptionType.STRING,"message", "Message to be encrypted", true)
+                    .addOption(OptionType.STRING,"aes", "Mode of encryption: AES-128, AES-192, AES-256", true)
+                    .addOption(OptionType.STRING,"key", "Private Key for encryption (auto generated if none provided)", false).queue();
+            guild.upsertCommand("decrypt", "Decrypt a message")
+                    .addOption(OptionType.STRING,"message", "Message to be decrypted", true)
+                    .addOption(OptionType.STRING,"key", "Private Key for decryption", true).queue();;
         }
     }
 }
