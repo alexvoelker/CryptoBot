@@ -2,7 +2,6 @@ package org.example;
 
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
@@ -11,8 +10,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.util.ArrayList;
 import java.util.Base64;
 
 public class Commands extends ListenerAdapter {
@@ -50,16 +47,14 @@ public class Commands extends ListenerAdapter {
                 } else {
                     try {
                         if (e.getOption("key") != null) {
-                            byte[] keyData = e.getOption("key").getAsString().getBytes();
-                            key = new SecretKeySpec(keyData, 0, keyData.length, "AES");
+                            byte[] inputKeyBytes = e.getOption("key").getAsString().getBytes();
+                            key = new SecretKeySpec(inputKeyBytes, 0, inputKeyBytes.length, "AES");
                         } else {
                             key = generateKey(Integer.parseInt(aes.substring(4)));
                         }
 
-                        byte[] encodedKey = key.getEncoded();
-                        String keyAsString = Base64.getEncoder().encodeToString(encodedKey);
-
-                        e.reply("Your encrypted message is: " + encryptMessage(key, message) + "\n\nYour secret key is: ||" + keyAsString + "||").queue();
+                        String keyString = DatatypeConverter.printBase64Binary(key.getEncoded());
+                        e.reply("Your encrypted message is: " + encryptMessage(key, message) + "\n\nYour secret key is: ||" + keyString + "||").queue();
                     } catch (GeneralSecurityException ex) {
                         throw new RuntimeException(ex);
                     }
@@ -69,8 +64,8 @@ public class Commands extends ListenerAdapter {
                 message = e.getOption("message").getAsString();
 
                 try {
-                    byte[] secretKeyBytes = Base64.getDecoder().decode(e.getOption("key").getAsString());
-                    key = new SecretKeySpec(secretKeyBytes, "AES");
+                    byte[] keyBytes = Base64.getDecoder().decode(e.getOption("key").getAsString());
+                    key = new SecretKeySpec(keyBytes, "AES");
 
                     e.reply("Your decrypted message is: ||" + decryptMessage(key, message) + "||").queue();
                 } catch (GeneralSecurityException ex) {
