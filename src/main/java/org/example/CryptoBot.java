@@ -10,8 +10,6 @@ public class CryptoBot extends ListenerAdapter {
 //                    e.reply("hi ;)").queue();
 //                }
 
-        e.deferReply();
-
         try {
             switch (e.getName()) {
                 case "hi":
@@ -21,7 +19,7 @@ public class CryptoBot extends ListenerAdapter {
                 case "hash":
                     String hashedString;
                     String hashFunc = e.getOption("hash_func").getAsString();
-                    // TODO add in the actual hash function later!∂
+                    // TODO add in the actual hash function later!
 
                     switch(hashFunc) {
                         case "sha256":
@@ -44,7 +42,9 @@ public class CryptoBot extends ListenerAdapter {
 
             }
         } catch (NullPointerException | IllegalArgumentException exception) {
-            e.reply(exception.getMessage());
+            String message = exception.getMessage();
+//            System.out.println(message);
+            e.reply(message).queue();
         }
     }
 }
