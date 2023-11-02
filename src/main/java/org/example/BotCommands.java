@@ -1,17 +1,69 @@
 package org.example;
 
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import org.jetbrains.annotations.NotNull;
+
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Scanner;
 
-public class Commands extends ListenerAdapter {
+import static org.example.Main.getJDA;
+
+public class BotCommands extends ListenerAdapter {
+
+    ArrayList<Message> messages = new ArrayList<>();
+
+    @Override
+    public void onReady(@NotNull ReadyEvent readyEvent){
+        ArrayList<CommandData> commands = new ArrayList<>();
+
+        //testing
+        commands.add(Commands.slash("hi", "testing"));
+
+        //datatype conversions
+        commands.add(Commands.slash("convert", "Convert data from Type1 to Type2")
+                .addOption(OptionType.STRING,"type1", "Input data type", true)
+                .addOption(OptionType.STRING,"type2", "Output data type", true)
+                .addOption(OptionType.STRING,"data", "Data to be converted", true));
+
+        //AES symmetric key encryption
+        commands.add(Commands.slash("encrypt", "Encrypt a message")
+                .addOption(OptionType.STRING,"message", "Message to be encrypted", true)
+                .addOption(OptionType.STRING,"aes", "Mode of encryption: AES-128, AES-192, AES-256", true)
+                .addOption(OptionType.STRING,"key", "Private Key for encryption (auto generated if none provided)", false));
+        commands.add(Commands.slash("decrypt", "Decrypt a message")
+                .addOption(OptionType.STRING,"message", "Message to be decrypted", true)
+                .addOption(OptionType.STRING,"key", "Private Key for decryption", true));
+        commands.add(Commands.slash("message", "Encrypt a message for a user")
+                .addOption(OptionType.STRING,"message", "Input message", true)
+                .addOption(OptionType.STRING,"user", "Input user", true)
+                .addOption(OptionType.STRING,"encryption", "Mode of encryption: AES-128, AES-192, AES-256", true));
+        commands.add(Commands.slash("receive", "Receive key")
+                .addOption(OptionType.STRING,"id", "ID", true));
+
+        readyEvent.getJDA().updateCommands().addCommands(commands).queue();
+
+    }
 
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent e) {
@@ -69,6 +121,40 @@ public class Commands extends ListenerAdapter {
                     e.reply("Your decrypted message is: ||" + decryptMessage(key, message) + "||").queue();
                 } catch (GeneralSecurityException ex) {
                     throw new RuntimeException(ex);
+                }
+                break;
+            case "message":
+                message = e.getOption("message").getAsString();
+                String user = e.getOption("user").getAsString();
+                aes = e.getOption("encryption").getAsString();
+
+                try {
+                    key = generateKey(Integer.parseInt(aes.substring(4)));
+                    String keyString = DatatypeConverter.printBase64Binary(key.getEncoded());
+                    Message msg = new Message("<@" + e.getUser().getId() + ">", user, encryptMessage(key, message),keyString);
+                    messages.add(msg);
+
+                    e.reply(msg.getReceiver() + " you were just sent a message from " + msg.getSender() + "\nThe cipher text is: " + msg.getCipher() +
+                            "\n\nYou can discover the secret key by entering the following command:\n**/receive message " + msg.id + "**").queue();
+                } catch (GeneralSecurityException ex) {
+                    throw new RuntimeException(ex);
+                }
+                break;
+            case "receive":
+                String id = e.getOption("id").getAsString();
+                user = "<@" + e.getUser().getId() + ">";
+
+                for(int i = 0; i < messages.size(); i++){
+                    if(messages.get(i).getId().equals(id)){
+                        Message temp = messages.get(i);
+
+                        if(user.equals(messages.get(i).getReceiver())){
+                            e.reply("Check your DMs").queue();
+                            e.getUser().openPrivateChannel().flatMap(channel -> channel.sendMessage("The secret key to message " + temp.getId() + " is : `" + temp.getKey() + "`")).queue();
+                        } else {
+                            e.reply("no").queue();
+                        }
+                    }
                 }
                 break;
         }
