@@ -22,6 +22,7 @@ public class Main {
         JDABuilder jdaBuilder = JDABuilder.createDefault(TOKEN);
         jda = jdaBuilder.setActivity((Activity.watching("you"))).addEventListeners(new BotCommands()).build().awaitReady();
         jda.awaitReady();
+
     }
 
     public static JDA getJDA(){
