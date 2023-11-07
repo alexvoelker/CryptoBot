@@ -1,9 +1,5 @@
 package org.example;
 
-import javax.crypto.spec.SecretKeySpec;
-import javax.xml.bind.DatatypeConverter;
-import java.security.GeneralSecurityException;
-
 public class Message {
 
     static int count;
