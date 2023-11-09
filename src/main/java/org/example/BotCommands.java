@@ -75,35 +75,63 @@ public class BotCommands extends ListenerAdapter {
                 break;
             case "help":
                 try {
-                    String helpPage = e.getOption("command").getAsString();
+                    String helpCommand = e.getOption("command").getAsString();
                     // Help page for a specific bot command
-                    e.reply("help for command: " + helpPage + "...");
 
-                } catch (IllegalArgumentException ex) {
+                    String reply;
+                    switch (helpCommand) {
+                        case "about":
+                            reply = "```" + helpCommand + " help page```";
+                            break;
+                        case "convert":
+                            reply = "```" + helpCommand + " help page```";
+                            break;
+                        case "encrypt":
+                            reply = "```" + helpCommand + " help page```";
+                            break;
+                        case "decrypt":
+                            reply = "```" + helpCommand + " help page```";
+                            break;
+                        case "message":
+                            reply = "```" + helpCommand + " help page```";
+                            break;
+                        case "receive":
+                            reply = "```" + helpCommand + " help page```";
+                            break;
+                        case "hash":
+                            reply = "```" + helpCommand + " help page```";
+                            break;
+                        default:
+                            throw new IllegalArgumentException("Break towards the default help page");
+                    }
+                    e.reply("help for command: " + helpCommand + "\n\n" + reply).queue();
+
+                } catch (NullPointerException | IllegalArgumentException ex) {
                     // Default full help page
                     e.reply("Welcome to the help page." +
                             "\nTo view a more detailed help message for a specific command, type `/help [command]`" +
                             "\nThe list of valid commands are:" +
+                            "\n\n`help`\n\tThis help page!\n\tParameters: `[command]`" +
                             "\n\n`about`\n\tThe bot command about page!" +
-                            "\n\n`help`\n\tThis help page!" +
-                            "\n\n`convert`\n\tConvert data from Type1 to Type2\n\tParameters: [type1] [type2] [data]" +
+                            "\n\n`convert`\n\tConvert data from Type1 to Type2\n\tParameters: `[type1]` `[type2]` `[data]`" +
                             // TODO might need to change the encrypt and decrypt help when asymmetric is added
-                            "\n\n`encrypt`\n\tEncrypt a message\n\tParameters: [message] [aes] [key]" +
-                            "\n\n`decrypt`\n\tDecrypt a message\n\tParameters: [message] [key]" +
-                            "\n\n`message`\n\tEncrypt a message for a user\n\tParameters: [message] [user] [encryption]" +
-                            "\n\n`receive`\n\tReceive key\n\tParameters: [ID]" +
-                            "\n\n`hash`\n\tHash a message\n\tParameters: [message] [hash_algorithm]");
+                            "\n\n`encrypt`\n\tEncrypt a message\n\tParameters: `[message]` `[aes]` `[key]`" +
+                            "\n\n`decrypt`\n\tDecrypt a message\n\tParameters: `[message]` `[key]`" +
+                            "\n\n`message`\n\tEncrypt a message for a user\n\tParameters: `[message]` `[user]` `[encryption]`" +
+                            "\n\n`receive`\n\tReceive key\n\tParameters: `[ID]`" +
+                            "\n\n`hash`\n\tHash a message\n\tParameters: `[message]` `[hash_algorithm]`").queue();
                 }
                 break;
             case "about":
-                e.reply("Thanks for using the CryptoBot! \n\n" +
+                String response = "Thanks for using the CryptoBot! \n\n" +
                         "This is a cryptography tool, created by Group 2 in CNIT 370, to help you learn about " +
                         "encryption, decryption, and hashing in an active environment.\n\n" +
                         "We also have some data conversion tools for you to use! \n\tTry `/convert`" +
                         "\n\nIf you want to learn more about the commands this bot has to offer, try `/help`" +
                         "\n\nJoin our public discord server at: https://discord.gg/vhuZFkHkRc" +
                         "\n\nYou can view our sourcecode on our public GitHub repository: " +
-                        "https://github.com/alexvoelker/CryptoBot");
+                        "https://github.com/alexvoelker/CryptoBot";
+                e.reply(response).queue();
                 break;
             case "hash":
                 String message = e.getOption("message").getAsString();
