@@ -30,13 +30,18 @@ public class BotCommands extends ListenerAdapter {
         //testing
         commands.add(Commands.slash("hi", "testing"));
 
-        //datatype conversions
+        // About/Help
+        commands.add(Commands.slash("about", "The bot command about page!"));
+        commands.add(Commands.slash("help", "A help page to learn how commands work")
+                .addOption(OptionType.STRING, "command", "the command to learn more about", false));
+
+        // Datatype conversions
         commands.add(Commands.slash("convert", "Convert data from Type1 to Type2")
                 .addOption(OptionType.STRING,"type1", "Input data type", true)
                 .addOption(OptionType.STRING,"type2", "Output data type", true)
                 .addOption(OptionType.STRING,"data", "Data to be converted", true));
 
-        //AES symmetric key encryption
+        // AES symmetric key encryption
         commands.add(Commands.slash("encrypt", "Encrypt a message")
                 .addOption(OptionType.STRING,"message", "Message to be encrypted", true)
                 .addOption(OptionType.STRING,"aes", "Mode of encryption: AES-128, AES-192, AES-256", true)
@@ -67,6 +72,19 @@ public class BotCommands extends ListenerAdapter {
         switch (e.getName()) {
             case "hi":
                 e.reply("hi").queue();
+                break;
+            case "help":
+                String helpPage = e.getOption("").getAsString();
+                break;
+            case "about":
+                e.reply("Thanks for using the CryptoBot! \n\n" +
+                        "This is a cryptography tool, created by Group 2 in CNIT 370, to help you learn about " +
+                        "encryption, decryption, and hashing in an active environment.\n\n" +
+                        "We also have some data conversion tools for you to use! \n\tTry `/convert`" +
+                        "\n\nIf you want to learn more about the commands this bot has to offer, try `/help`" +
+                        "\n\nJoin our public discord server at: https://discord.gg/vhuZFkHkRc" +
+                        "\n\nYou can view our sourcecode on our public GitHub repository: " +
+                        "https://github.com/alexvoelker/CryptoBot");
                 break;
             case "hash":
                 String message = e.getOption("message").getAsString();
