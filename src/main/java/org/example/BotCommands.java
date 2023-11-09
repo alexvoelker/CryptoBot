@@ -81,45 +81,85 @@ public class BotCommands extends ListenerAdapter {
                     String reply;
                     switch (helpCommand) {
                         case "about":
-                            reply = "```" + helpCommand + " help page```";
+                            reply = "Run the `about` command for some information about this discord bot.";
                             break;
-                        case "convert":
-                            reply = "```" + helpCommand + " help page```";
+                        case "convert": // TODO finish this when the discord channel is updated
+                            reply = "## Encoding and Decoding" +
+                                    "This a system where different encoding standards can be used to convert plaintext into different types of data\n" +
+                                    "\n" +
+                                    "**Supported Datatypes**: String, Hex (hexadecimal), Bits (binary), Base64 \n\n" +
+                                    "## Data types\n" +
+                                    "### Bits (binary)\n" +
+                                    "Very basic form of data with a Base-2 (2 character) structure where all everything is represented by either a 1 or 0\n" +
+                                    "### String\n" +
+                                    "Sequence of characters that is in a human-readable form\n" +
+                                    "### Hex\n" +
+                                    "Form of data in a Base-16 (16 character) structure where data is represented by 0-9 and A-F\n" +
+                                    "### Base64\n" +
+                                    "Form of data in a Base-64 (64 character) structure with the data form defined by RFC 4648\n\n" +
+                                    "## Usage" +
+                                    "**Encoding Modes**: *Bits, String, Hex, Base64*" +
+                                    "```/convert [input type] [output type] data```" +
+                                    "> Allows for data to be converted using different encoding standards" +
+                                    "Example: ```/convert String Base64 Hello World!```";
                             break;
-                        case "encrypt":
-                            reply = "```" + helpCommand + " help page```";
+                        case "encrypt": // TODO finish this when the discord channel is updated
+                            reply = "## CryptoBot Symmetric-key Implementations: Encryption\n" +
+                                    "**Encryption Modes:** AES-128, AES-192, AES-256\n" +
+                                    "*the number determines the bits of the outputted secret key (AES-256 -> 256 bits)*\n" +
+                                    " \n" +
+                                    "```/encrypt [message] [encryption]```  \n" +
+                                    "> Allows for messages to be encrypted using specific symmetric-key algorithms\n" +
+                                    " \n" +
+                                    "Example: `/encrypt Hello World! AES-128`\n" +
+                                    " \n";
                             break;
-                        case "decrypt":
-                            reply = "```" + helpCommand + " help page```";
+                        case "decrypt": // TODO finish this when the discord channel is updated
+                            reply = "## CryptoBot Symmetric-key Implementations: Decryption\n" +
+                                    "```/decrypt [message] [secret key]```  \n" +
+                                    "> Decrypts the message cipher text outputted from CryptoBot with the corresponding secret key\n" +
+                                    " \n" +
+                                    "Example: `/decrypt ylj6IYAW0chOtmIRjbjITA== TiyllEm0hqJapmZpljAh1Q==`\n" +
+                                    " \n";
                             break;
                         case "message":
-                            reply = "```" + helpCommand + " help page```";
+                            reply = "```/message [message text] [discord user] [encryption]```\n" +
+                                    "> Sends an encrypted message to a discord user using specific symmetric-key algorithms\n" +
+                                    " \n" +
+                                    "Example: `/message Hello World! @user AES-128`\n" +
+                                    " \n" +
+                                    "```/receive [message id]```\n" +
+                                    "> Decrypts a message sent from another user using the message id received from the CryptoBot\n" +
+                                    " \n" +
+                                    "Example: `/receive 1`";;
                             break;
                         case "receive":
-                            reply = "```" + helpCommand + " help page```";
+                            reply = "**```" + helpCommand + " help page```**\n";
                             break;
-                        case "hash":
-                            reply = "```" + helpCommand + " help page```";
+                        case "hash": // TODO finish this when the discord channel is updated
+                            reply = "Usage: ```/hash [message] [hash_algorithm]```\n";
                             break;
                         default:
                             throw new IllegalArgumentException("Break towards the default help page");
                     }
-                    e.reply("help for command: " + helpCommand + "\n\n" + reply).queue();
+                    e.reply("# " + helpCommand.toUpperCase() + " Documentation\n\n" + reply).queue();
 
                 } catch (NullPointerException | IllegalArgumentException ex) {
+                    // Catches if the input is null or not a valid command
+
                     // Default full help page
-                    e.reply("Welcome to the help page." +
+                    e.reply("# Welcome to the help page." +
                             "\nTo view a more detailed help message for a specific command, type `/help [command]`" +
                             "\nThe list of valid commands are:" +
-                            "\n\n`help`\n\tThis help page!\n\tParameters: `[command]`" +
-                            "\n\n`about`\n\tThe bot command about page!" +
-                            "\n\n`convert`\n\tConvert data from Type1 to Type2\n\tParameters: `[type1]` `[type2]` `[data]`" +
+                            "\n\n### `help`\n\tThis help page!\n\tParameters: `[command]`" +
+                            "\n\n### `about`\n\tThe bot command about page!" +
+                            "\n\n### `convert`\n\tConvert data from Type1 to Type2\n\tParameters: `[type1]` `[type2]` `[data]`" +
                             // TODO might need to change the encrypt and decrypt help when asymmetric is added
-                            "\n\n`encrypt`\n\tEncrypt a message\n\tParameters: `[message]` `[aes]` `[key]`" +
-                            "\n\n`decrypt`\n\tDecrypt a message\n\tParameters: `[message]` `[key]`" +
-                            "\n\n`message`\n\tEncrypt a message for a user\n\tParameters: `[message]` `[user]` `[encryption]`" +
-                            "\n\n`receive`\n\tReceive key\n\tParameters: `[ID]`" +
-                            "\n\n`hash`\n\tHash a message\n\tParameters: `[message]` `[hash_algorithm]`").queue();
+                            "\n\n### `encrypt`\n\tEncrypt a message\n\tParameters: `[message]` `[aes]` `[key]`" +
+                            "\n\n### `decrypt`\n\tDecrypt a message\n\tParameters: `[message]` `[key]`" +
+                            "\n\n### `message`\n\tEncrypt a message for a user\n\tParameters: `[message]` `[user]` `[encryption]`" +
+                            "\n\n### `receive`\n\tReceive key\n\tParameters: `[ID]`" +
+                            "\n\n### `hash`\n\tHash a message\n\tParameters: `[message]` `[hash_algorithm]`").queue();
                 }
                 break;
             case "about":
