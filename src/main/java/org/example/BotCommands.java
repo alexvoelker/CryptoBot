@@ -74,7 +74,26 @@ public class BotCommands extends ListenerAdapter {
                 e.reply("hi").queue();
                 break;
             case "help":
-                String helpPage = e.getOption("").getAsString();
+                try {
+                    String helpPage = e.getOption("command").getAsString();
+                    // Help page for a specific bot command
+                    e.reply("help for command: " + helpPage + "...");
+
+                } catch (IllegalArgumentException ex) {
+                    // Default full help page
+                    e.reply("Welcome to the help page." +
+                            "\nTo view a more detailed help message for a specific command, type `/help [command]`" +
+                            "\nThe list of valid commands are:" +
+                            "\n\n`about`\n\tThe bot command about page!" +
+                            "\n\n`help`\n\tThis help page!" +
+                            "\n\n`convert`\n\tConvert data from Type1 to Type2\n\tParameters: [type1] [type2] [data]" +
+                            // TODO might need to change the encrypt and decrypt help when asymmetric is added
+                            "\n\n`encrypt`\n\tEncrypt a message\n\tParameters: [message] [aes] [key]" +
+                            "\n\n`decrypt`\n\tDecrypt a message\n\tParameters: [message] [key]" +
+                            "\n\n`message`\n\tEncrypt a message for a user\n\tParameters: [message] [user] [encryption]" +
+                            "\n\n`receive`\n\tReceive key\n\tParameters: [ID]" +
+                            "\n\n`hash`\n\tHash a message\n\tParameters: [message] [hash_algorithm]");
+                }
                 break;
             case "about":
                 e.reply("Thanks for using the CryptoBot! \n\n" +
@@ -100,7 +119,7 @@ public class BotCommands extends ListenerAdapter {
                     String hashed_message = DatatypeConverter.printBase64Binary(digestOfMessage);
 
                     e.reply("Initial message: `" + message + "`\nHash Algorithm: `"
-                            + hash_algorithm + "`\nHashed Message (in base64): `"+ hashed_message +"`").queue();
+                            + hash_algorithm + "`\nHashed Message (in base64): `" + hashed_message + "`").queue();
 
                 } catch (NoSuchAlgorithmException ex) {
                     e.reply("The specified hashing algorithm `" + hash_algorithm
