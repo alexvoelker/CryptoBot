@@ -134,10 +134,27 @@ public class BotCommands extends ListenerAdapter {
                                     "Example: `/receive 1`";;
                             break;
                         case "receive":
-                            reply = "**```" + helpCommand + " help page```**\n";
+                            reply = "```/receive [message id]```\n" +
+                                    "Receives a message sent from another user using the message id received from the CryptoBot\n" +
+                                    "Example: `/receive 1`";
                             break;
-                        case "hash": // TODO finish this when the discord channel is updated
-                            reply = "Usage: ```/hash [message] [hash_algorithm]```\n";
+                        case "hash":
+                            reply = "Hashing is a system where an input (or ‘message’) is taken and returned as a fixed-size string of bytes. The output (or ‘hash’) is unique to each unique input. It’s a one-way function, meaning the data cannot be decrypted back from the hash.\n" +
+                                    "*Examples: MD5, SHA-1, SHA-256, SHA-3, HMAC*\n\n" +
+                                    "## Hashing Implementations\n" +
+                                    "**Supported Hashing Algorithms:** MD5, SHA-1, SHA-256\n" +
+                                    "The name determines the hashing algorithm used (SHA-256 -> SHA-256 algorithm)\n" +
+                                    "```/hash [message] [hashing algorithm]```\n" +
+                                    "> Allows for messages to be hashed using specific algorithms\n" +
+                                    "Example:  `/hash Hello World! SHA-256`\n\n";
+                            break;
+                        case "verify":
+                            reply = "Hashing is a system where an input (or ‘message’) is taken and returned as a fixed-size string of bytes. The output (or ‘hash’) is unique to each unique input. It’s a one-way function, meaning the data cannot be decrypted back from the hash.\n" +
+                                    "*Examples: MD5, SHA-1, SHA-256, SHA-3, HMAC*\n\n" +
+                                    "## Hashing Implementations\n" +
+                                    "**Supported Hashing Algorithms:** MD5, SHA-1, SHA-256\n" +
+                                    "```/verify [message] [hash] [hashing algorithm]```\n" +
+                                    "> Verifies the message with the corresponding hash\n";
                             break;
                         default:
                             throw new IllegalArgumentException("Break towards the default help page");
@@ -159,7 +176,8 @@ public class BotCommands extends ListenerAdapter {
                             "\n\n### `decrypt`\n\tDecrypt a message\n\tParameters: `[message]` `[key]`" +
                             "\n\n### `message`\n\tEncrypt a message for a user\n\tParameters: `[message]` `[user]` `[encryption]`" +
                             "\n\n### `receive`\n\tReceive key\n\tParameters: `[ID]`" +
-                            "\n\n### `hash`\n\tHash a message\n\tParameters: `[message]` `[hash_algorithm]`").queue();
+                            "\n\n### `hash`\n\tHash a message\n\tParameters: `[message]` `[hash_algorithm]`" +
+                            "\n\n### `verify`\n\tVerify a hashed message\n\tParameters: `[message]` `[hash]` `[hash_algorithm]`").queue();
                 }
                 break;
             case "about":
