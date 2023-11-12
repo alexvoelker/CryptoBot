@@ -27,11 +27,17 @@ public class BotCommands extends ListenerAdapter {
         //testing
         commands.add(Commands.slash("hi", "testing"));
 
-        //datatype conversions
+        // About/Help
+        commands.add(Commands.slash("about", "The bot command about page!"));
+        commands.add(Commands.slash("help", "A help page to learn how commands work")
+                .addOption(OptionType.STRING, "command", "the command to learn more about", false));
+
+        // Datatype conversions
         commands.add(Commands.slash("convert", "Convert data from Type1 to Type2")
                 .addOption(OptionType.STRING,"type1", "Input data type", true)
                 .addOption(OptionType.STRING,"type2", "Output data type", true)
                 .addOption(OptionType.STRING,"data", "Data to be converted", true));
+
 
         //AES symmetric key encryption
         commands.add(Commands.slash("message", "Encrypt a message for a user")
@@ -70,6 +76,132 @@ public class BotCommands extends ListenerAdapter {
             case "hi":
                 e.reply("hi").queue();
                 break;
+            case "help":
+                try {
+                    String helpCommand = e.getOption("command").getAsString();
+                    // Help page for a specific bot command
+
+                    String reply;
+                    switch (helpCommand) {
+                        case "about":
+                            reply = "Run the `about` command for some information about this discord bot.";
+                            break;
+                        case "convert":
+                            reply = "## Encoding and Decoding" +
+                                    "This a system where different encoding standards can be used to convert plaintext into different types of data\n" +
+                                    "\n" +
+                                    "**Supported Datatypes**: String, Hex (hexadecimal), Bits (binary), Base64 \n\n" +
+                                    "## Data types\n" +
+                                    "### Bits (binary)\n" +
+                                    "Very basic form of data with a Base-2 (2 character) structure where all everything is represented by either a 1 or 0\n" +
+                                    "### String\n" +
+                                    "Sequence of characters that is in a human-readable form\n" +
+                                    "### Hex\n" +
+                                    "Form of data in a Base-16 (16 character) structure where data is represented by 0-9 and A-F\n" +
+                                    "### Base64\n" +
+                                    "Form of data in a Base-64 (64 character) structure with the data form defined by RFC 4648\n\n" +
+                                    "## Usage\n" +
+                                    "**Encoding Modes**: *Bits, String, Hex, Base64*\n" +
+                                    "```/convert [input type] [output type] data```\n" +
+                                    "> Allows for data to be converted using different encoding standards\n" +
+                                    "Example: `/convert String Base64 Hello World!`";
+                            break;
+                        case "encrypt": // TODO finish this when the discord channel is updated
+                            reply = "## CryptoBot Symmetric-key Implementations: Encryption\n" +
+                                    "**Encryption Modes:** AES-128, AES-192, AES-256\n" +
+                                    "*the number determines the bits of the outputted secret key (AES-256 -> 256 bits)*\n" +
+                                    " \n" +
+                                    "```/encrypt symmetric [message] [encryption]```  \n" +
+                                    "> Allows for messages to be encrypted using specific symmetric-key algorithms\n" +
+                                    " \n" +
+                                    "Example: `/encrypt symmetric Hello World! AES-128`\n\n" +
+                                    "## CryptoBot Asymmetric-Key Implementations: Encryption\n" +
+                                    "**Encryption Modes:** RSA-1024, RSA-2048, RSA-3072, RSA-4096 \n" +
+                                    "The number determines the bits of the outputted secret key (RSA-2048 -> 2048 bits)\n" +
+                                    "```/encrypt asymmetric [message] [encryption]```\n" +
+                                    "> Allows for messages to be encrypted using specific asymmetric-key algorithms\n" +
+                                    "Example: `/encrypt asymmetric Hello World! RSA-1024`\n";
+                            break;
+                        case "decrypt": // TODO finish this when the discord channel is updated
+                            reply = "## CryptoBot Symmetric-key Implementations: Decryption\n" +
+                                    "```/decrypt symmetric [message] [secret key]```  \n" +
+                                    "> Decrypts the message cipher text outputted from CryptoBot with the corresponding secret key\n" +
+                                    " \n" +
+                                    "Example: `/decrypt symmetric ylj6IYAW0chOtmIRjbjITA== TiyllEm0hqJapmZpljAh1Q==`\n" +
+                                    " \n## CryptoBot Asymmetric-Key Implementations: Encryption\n" +
+                                    "**Encryption Modes:** RSA-1024, RSA-2048, RSA-3072, RSA-4096 \n" +
+                                    "```/decrypt asymmetric [message] [private key]```\n" +
+                                    "Decrypts the message cipher text outputted from CryptoBot with " +
+                                    "the corresponding private key\n\n" +
+                                    "Example: `/decrypt asymmetric ylj6IYAW0chOtmIRjbjITA==` `TiyllEm0hqJapmZpljAh1Q==`";
+                            break;
+                        case "message":
+                            reply = "```/message [message text] [discord user] [encryption]```\n" +
+                                    "> Sends an encrypted message to a discord user using specific symmetric-key algorithms\n" +
+                                    "\n**Supported Encryption Algorithms:** AES-128, AES-192, AES-256\n" +
+                                    "Example: `/message Hello World! @user AES-128`\n" +
+                                    " \n```/receive [message id]```\n" +
+                                    "> Decrypts a message sent from another user using the message id received from the CryptoBot\n" +
+                                    "\nExample: `/receive 1`";;
+                            break;
+                        case "receive":
+                            reply = "```/receive [message id]```\n" +
+                                    "Receives a message sent from another user using the message id received from the CryptoBot\n" +
+                                    "Example: `/receive 1`";
+                            break;
+                        case "hash":
+                            reply = "Hashing is a system where an input (or ‘message’) is taken and returned as a fixed-size string of bytes. The output (or ‘hash’) is unique to each unique input. It’s a one-way function, meaning the data cannot be decrypted back from the hash.\n" +
+                                    "*Examples: MD5, SHA-1, SHA-256, SHA-3, HMAC*\n\n" +
+                                    "## Hashing Implementations\n" +
+                                    "**Supported Hashing Algorithms:** MD5, SHA-1, SHA-256\n" +
+                                    "The name determines the hashing algorithm used (SHA-256 -> SHA-256 algorithm)\n" +
+                                    "```/hash [message] [hashing algorithm]```\n" +
+                                    "> Allows for messages to be hashed using specific algorithms\n" +
+                                    "Example:  `/hash Hello World! SHA-256`\n\n";
+                            break;
+                        case "verify":
+                            reply = "Hashing is a system where an input (or ‘message’) is taken and returned as a fixed-size string of bytes. The output (or ‘hash’) is unique to each unique input. It’s a one-way function, meaning the data cannot be decrypted back from the hash.\n" +
+                                    "*Examples: MD5, SHA-1, SHA-256, SHA-3, HMAC*\n\n" +
+                                    "## Hashing Implementations\n" +
+                                    "**Supported Hashing Algorithms:** MD5, SHA-1, SHA-256\n" +
+                                    "```/verify [message] [hash] [hashing algorithm]```\n" +
+                                    "> Verifies the message with the corresponding hash\n";
+                            break;
+                        default:
+                            throw new IllegalArgumentException("Break towards the default help page");
+                    }
+                    e.reply("# " + helpCommand.toUpperCase() + " Documentation\n\n" + reply).queue();
+
+                } catch (NullPointerException | IllegalArgumentException ex) {
+                    // Catches if the input is null or not a valid command
+
+                    // Default full help page
+                    e.reply("# Welcome to the help page." +
+                            "\nTo view a more detailed help message for a specific command, type `/help [command]`" +
+                            "\nThe list of valid commands are:" +
+                            "\n\n### `help`\n\tThis help page!\n\tParameters: `[command]`" +
+                            "\n\n### `about`\n\tThe bot command about page!" +
+                            "\n\n### `convert`\n\tConvert data from Type1 to Type2\n\tParameters: `[type1]` `[type2]` `[data]`" +
+                            // TODO might need to change the encrypt and decrypt help when asymmetric is added
+                            "\n\n### `encrypt`\n\tEncrypt a message\n\tParameters: `[type]` `[message]` `[aes]` `[key]`" +
+                            "\n\n### `decrypt`\n\tDecrypt a message\n\tParameters: `[type]` `[message]` `[key]`" +
+                            "\n\n### `message`\n\tEncrypt a message for a user\n\tParameters: `[message]` `[user]` `[encryption]`" +
+                            "\n\n### `receive`\n\tReceive key\n\tParameters: `[ID]`" +
+                            "\n\n### `hash`\n\tHash a message\n\tParameters: `[message]` `[hash_algorithm]`" +
+                            "\n\n### `verify`\n\tVerify a hashed message\n\tParameters: `[message]` `[hash]` `[hash_algorithm]`").queue();
+                }
+                break;
+            case "about":
+                String response = "Thanks for using the CryptoBot! \n\n" +
+                        "This is a cryptography tool, created by Group 2 in CNIT 370, to help you learn about " +
+                        "encryption, decryption, and hashing in an active environment.\n\n" +
+                        "We also have some data conversion tools for you to use! \n\tTry `/convert`" +
+                        "\n\nIf you want to learn more about the commands this bot has to offer, try `/help`" +
+                        "\n\nJoin our public discord server at: https://discord.gg/vhuZFkHkRc" +
+                        "\n\nYou can view our sourcecode on our public GitHub repository: " +
+                        "https://github.com/alexvoelker/CryptoBot";
+                e.reply(response).queue();
+                break;
             case "hash":
                 String message = e.getOption("message").getAsString();
                 String hash_algorithm = e.getOption("hash_algorithm").getAsString().toUpperCase();
@@ -84,7 +216,7 @@ public class BotCommands extends ListenerAdapter {
                     String hashed_message = DatatypeConverter.printBase64Binary(digestOfMessage);
 
                     e.reply("Initial message: `" + message + "`\nHash Algorithm: `"
-                            + hash_algorithm + "`\nHashed Message (in base64): `"+ hashed_message +"`").queue();
+                            + hash_algorithm + "`\nHashed Message (in base64): `" + hashed_message + "`").queue();
 
                 } catch (NoSuchAlgorithmException ex) {
                     e.reply("The specified hashing algorithm `" + hash_algorithm
