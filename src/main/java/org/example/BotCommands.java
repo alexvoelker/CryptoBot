@@ -83,7 +83,7 @@ public class BotCommands extends ListenerAdapter {
                         case "about":
                             reply = "Run the `about` command for some information about this discord bot.";
                             break;
-                        case "convert": // TODO finish this when the discord channel is updated
+                        case "convert":
                             reply = "## Encoding and Decoding" +
                                     "This a system where different encoding standards can be used to convert plaintext into different types of data\n" +
                                     "\n" +
@@ -97,41 +97,49 @@ public class BotCommands extends ListenerAdapter {
                                     "Form of data in a Base-16 (16 character) structure where data is represented by 0-9 and A-F\n" +
                                     "### Base64\n" +
                                     "Form of data in a Base-64 (64 character) structure with the data form defined by RFC 4648\n\n" +
-                                    "## Usage" +
-                                    "**Encoding Modes**: *Bits, String, Hex, Base64*" +
-                                    "```/convert [input type] [output type] data```" +
-                                    "> Allows for data to be converted using different encoding standards" +
-                                    "Example: ```/convert String Base64 Hello World!```";
+                                    "## Usage\n" +
+                                    "**Encoding Modes**: *Bits, String, Hex, Base64*\n" +
+                                    "```/convert [input type] [output type] data```\n" +
+                                    "> Allows for data to be converted using different encoding standards\n" +
+                                    "Example: `/convert String Base64 Hello World!`";
                             break;
                         case "encrypt": // TODO finish this when the discord channel is updated
                             reply = "## CryptoBot Symmetric-key Implementations: Encryption\n" +
                                     "**Encryption Modes:** AES-128, AES-192, AES-256\n" +
                                     "*the number determines the bits of the outputted secret key (AES-256 -> 256 bits)*\n" +
                                     " \n" +
-                                    "```/encrypt [message] [encryption]```  \n" +
+                                    "```/encrypt symmetric [message] [encryption]```  \n" +
                                     "> Allows for messages to be encrypted using specific symmetric-key algorithms\n" +
                                     " \n" +
-                                    "Example: `/encrypt Hello World! AES-128`\n" +
-                                    " \n";
+                                    "Example: `/encrypt symmetric Hello World! AES-128`\n\n" +
+                                    "## CryptoBot Asymmetric-Key Implementations: Encryption\n" +
+                                    "**Encryption Modes:** RSA-1024, RSA-2048, RSA-3072, RSA-4096 \n" +
+                                    "The number determines the bits of the outputted secret key (RSA-2048 -> 2048 bits)\n" +
+                                    "```/encrypt asymmetric [message] [encryption]```\n" +
+                                    "> Allows for messages to be encrypted using specific asymmetric-key algorithms\n" +
+                                    "Example: `/encrypt asymmetric Hello World! RSA-1024`\n";
                             break;
                         case "decrypt": // TODO finish this when the discord channel is updated
                             reply = "## CryptoBot Symmetric-key Implementations: Decryption\n" +
-                                    "```/decrypt [message] [secret key]```  \n" +
+                                    "```/decrypt symmetric [message] [secret key]```  \n" +
                                     "> Decrypts the message cipher text outputted from CryptoBot with the corresponding secret key\n" +
                                     " \n" +
-                                    "Example: `/decrypt ylj6IYAW0chOtmIRjbjITA== TiyllEm0hqJapmZpljAh1Q==`\n" +
-                                    " \n";
+                                    "Example: `/decrypt symmetric ylj6IYAW0chOtmIRjbjITA== TiyllEm0hqJapmZpljAh1Q==`\n" +
+                                    " \n## CryptoBot Asymmetric-Key Implementations: Encryption\n" +
+                                    "**Encryption Modes:** RSA-1024, RSA-2048, RSA-3072, RSA-4096 \n" +
+                                    "```/decrypt asymmetric [message] [private key]```\n" +
+                                    "Decrypts the message cipher text outputted from CryptoBot with " +
+                                    "the corresponding private key\n\n" +
+                                    "Example: `/decrypt asymmetric ylj6IYAW0chOtmIRjbjITA==` `TiyllEm0hqJapmZpljAh1Q==`";
                             break;
                         case "message":
                             reply = "```/message [message text] [discord user] [encryption]```\n" +
                                     "> Sends an encrypted message to a discord user using specific symmetric-key algorithms\n" +
-                                    " \n" +
+                                    "\n**Supported Encryption Algorithms:** AES-128, AES-192, AES-256\n" +
                                     "Example: `/message Hello World! @user AES-128`\n" +
-                                    " \n" +
-                                    "```/receive [message id]```\n" +
+                                    " \n```/receive [message id]```\n" +
                                     "> Decrypts a message sent from another user using the message id received from the CryptoBot\n" +
-                                    " \n" +
-                                    "Example: `/receive 1`";;
+                                    "\nExample: `/receive 1`";;
                             break;
                         case "receive":
                             reply = "```/receive [message id]```\n" +
@@ -172,8 +180,8 @@ public class BotCommands extends ListenerAdapter {
                             "\n\n### `about`\n\tThe bot command about page!" +
                             "\n\n### `convert`\n\tConvert data from Type1 to Type2\n\tParameters: `[type1]` `[type2]` `[data]`" +
                             // TODO might need to change the encrypt and decrypt help when asymmetric is added
-                            "\n\n### `encrypt`\n\tEncrypt a message\n\tParameters: `[message]` `[aes]` `[key]`" +
-                            "\n\n### `decrypt`\n\tDecrypt a message\n\tParameters: `[message]` `[key]`" +
+                            "\n\n### `encrypt`\n\tEncrypt a message\n\tParameters: `[type]` `[message]` `[aes]` `[key]`" +
+                            "\n\n### `decrypt`\n\tDecrypt a message\n\tParameters: `[type]` `[message]` `[key]`" +
                             "\n\n### `message`\n\tEncrypt a message for a user\n\tParameters: `[message]` `[user]` `[encryption]`" +
                             "\n\n### `receive`\n\tReceive key\n\tParameters: `[ID]`" +
                             "\n\n### `hash`\n\tHash a message\n\tParameters: `[message]` `[hash_algorithm]`" +
