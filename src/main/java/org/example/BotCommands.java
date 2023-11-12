@@ -1,11 +1,5 @@
 package org.example;
 
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -17,15 +11,10 @@ import org.jetbrains.annotations.NotNull;
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.RSAPrivateKeySpec;
 import java.util.*;
-
-import static org.example.Main.getJDA;
 
 public class BotCommands extends ListenerAdapter {
 
@@ -66,6 +55,11 @@ public class BotCommands extends ListenerAdapter {
                 .addOption(OptionType.STRING,"type", "Type of encryption (asymmetric or symmetric)", true)
                 .addOption(OptionType.STRING,"key", "Private Key for decryption", true));
 
+        // Hashing Functionality
+        commands.add(Commands.slash("hash", "Hash a message")
+                .addOption(OptionType.STRING, "message", "Input message", true)
+                .addOption(OptionType.STRING, "hash_algorithm", "Hash Algorithm: MD5, SHA-1, SHA-256", true));
+
         readyEvent.getJDA().updateCommands().addCommands(commands).queue();
 
     }
@@ -75,6 +69,27 @@ public class BotCommands extends ListenerAdapter {
         switch (e.getName()) {
             case "hi":
                 e.reply("hi").queue();
+                break;
+            case "hash":
+                String message = e.getOption("message").getAsString();
+                String hash_algorithm = e.getOption("hash_algorithm").getAsString().toUpperCase();
+
+                try {
+                    MessageDigest messageDigest = MessageDigest.getInstance(hash_algorithm);
+
+                    // Call the Java hashing function, which returns an array of bytes
+                    byte[] digestOfMessage = messageDigest.digest(message.getBytes());
+
+                    // Convert the array of bytes to a string.
+                    String hashed_message = DatatypeConverter.printBase64Binary(digestOfMessage);
+
+                    e.reply("Initial message: `" + message + "`\nHash Algorithm: `"
+                            + hash_algorithm + "`\nHashed Message (in base64): `"+ hashed_message +"`").queue();
+
+                } catch (NoSuchAlgorithmException ex) {
+                    e.reply("The specified hashing algorithm `" + hash_algorithm
+                            + "` is invalid. Try: MD5, SHA-1 or SHA-256").queue();
+                }
                 break;
             case "convert":
                 String type1 = e.getOption("type1").getAsString();
@@ -95,7 +110,7 @@ public class BotCommands extends ListenerAdapter {
                 break;
             case "encrypt":
                 String type = (e.getOption("type").getAsString());
-                String message = (e.getOption("message").getAsString());
+                message = (e.getOption("message").getAsString());
                 String mode = "";
                 if (e.getOption("mode") != null) {
                     mode = e.getOption("mode").getAsString();

@@ -20,11 +20,16 @@ public class Main {
         String TOKEN = keyReader.nextLine();
 
         JDABuilder jdaBuilder = JDABuilder.createDefault(TOKEN);
-        jda = jdaBuilder.setActivity((Activity.watching("you"))).addEventListeners(new BotCommands()).build().awaitReady();
+        jda = jdaBuilder.setActivity((Activity.watching("you"))).addEventListeners(new BotCommands()).build();
         jda.awaitReady();
-    }
 
-    public static JDA getJDA(){
-        return jda;
+        // Purge all commands if necessary, requires import: net.dv8tion.jda.api.entities.Guild
+//        Guild guild = jda.getGuildById("1157522711715790858");
+//
+//        if (guild != null){
+//            //testing command
+//            guild.updateCommands().queue();
+//        }
+
     }
 }
