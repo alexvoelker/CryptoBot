@@ -14,6 +14,7 @@ import javax.xml.bind.DatatypeConverter;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.*;
 
 public class BotCommands extends ListenerAdapter {
@@ -119,7 +120,7 @@ public class BotCommands extends ListenerAdapter {
                                     "**Encryption Modes:** RSA-1024, RSA-2048, RSA-3072, RSA-4096 \n" +
                                     "The number determines the bits of the outputted secret key (RSA-2048 -> 2048 bits)\n" +
                                     "```/encrypt asymmetric [message] [encryption]```\n" +
-                                    "> Allows for messages to be encrypted using specific asymmetric-key algorithms\n" +
+                                    "> Allows for messages to be encrypted using specific asymmetric-key algorithms\n\n" +
                                     "Example: `/encrypt asymmetric Hello World! RSA-1024`\n";
                             break;
                         case "decrypt": // TODO finish this when the discord channel is updated
@@ -128,10 +129,10 @@ public class BotCommands extends ListenerAdapter {
                                     "> Decrypts the message cipher text outputted from CryptoBot with the corresponding secret key\n" +
                                     " \n" +
                                     "Example: `/decrypt symmetric ylj6IYAW0chOtmIRjbjITA== TiyllEm0hqJapmZpljAh1Q==`\n" +
-                                    " \n## CryptoBot Asymmetric-Key Implementations: Encryption\n" +
-                                    "**Encryption Modes:** RSA-1024, RSA-2048, RSA-3072, RSA-4096 \n" +
+                                    " \n## CryptoBot Asymmetric-Key Implementations: Decryption\n" +
+                                    "**Encryption Mode:** RSA \n" +
                                     "```/decrypt asymmetric [message] [private key]```\n" +
-                                    "Decrypts the message cipher text outputted from CryptoBot with " +
+                                    "> Decrypts the message cipher text outputted from CryptoBot with " +
                                     "the corresponding private key\n\n" +
                                     "Example: `/decrypt asymmetric ylj6IYAW0chOtmIRjbjITA==` `TiyllEm0hqJapmZpljAh1Q==`";
                             break;
@@ -276,7 +277,7 @@ public class BotCommands extends ListenerAdapter {
                         }
                     } else if(type.equalsIgnoreCase("asymmetric")){
                         try {
-                            if (e.getOption("key") != null) {
+                            if (e.getOption("key") == null) {
                                 KeyPair keyPair = generateAsymmetricKeys();
                                 PrivateKey privateKey = keyPair.getPrivate();
                                 PublicKey publicKey = keyPair.getPublic();
@@ -288,7 +289,7 @@ public class BotCommands extends ListenerAdapter {
                                 e.reply("Your encrypted message is: " + encryptMessageAsymmetric(publicKey, message) + "\n\nThe public key used to encrypt this is: `" + publicKeyString + "`").queue();
                             } else {
                                 byte[] publicKeyBytes = Base64.getDecoder().decode(e.getOption("key").getAsString());
-                                PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(publicKeyBytes);
+                                X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicKeyBytes);
                                 KeyFactory keyFactory = KeyFactory.getInstance("RSA");
                                 PublicKey publicKey = keyFactory.generatePublic(keySpec);
 
