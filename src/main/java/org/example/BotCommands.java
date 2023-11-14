@@ -245,9 +245,12 @@ public class BotCommands extends ListenerAdapter {
                 String type = (e.getOption("type").getAsString());
                 message = (e.getOption("message").getAsString());
                 String mode = "";
+
                 if (e.getOption("mode") != null) {
                     mode = e.getOption("mode").getAsString();
-                } else if(type.equalsIgnoreCase("symmetric")){
+                }
+
+                if(type.equalsIgnoreCase("symmetric")){
                     mode = "AES-128";
                 } else if(type.equalsIgnoreCase("asymmetric")) {
                     mode = "RSA";
@@ -481,7 +484,7 @@ public class BotCommands extends ListenerAdapter {
     }
 
     public String encryptMessageSymmetric(SecretKey secretKey, String message) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        Cipher cipher = Cipher.getInstance("RSA");
+        Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.ENCRYPT_MODE, secretKey);
         byte[] encryptedBytes = cipher.doFinal(message.getBytes());
 
@@ -490,7 +493,7 @@ public class BotCommands extends ListenerAdapter {
 
     public static String decryptMessageSymmetric(SecretKey secretKey, String message) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, NoSuchAlgorithmException {
         byte[] encryptedBytes = Base64.getDecoder().decode(message);
-        Cipher cipher = Cipher.getInstance("RSA");
+        Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.DECRYPT_MODE, secretKey);
         byte[] decryptedBytes = cipher.doFinal(encryptedBytes);
 
