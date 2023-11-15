@@ -7,14 +7,12 @@ public class Message {
     String sender;
     String receiver;
     String cipher;
-    String key;
-    public Message(String sender, String receiver, String cipher, String key){
+    public Message(String sender, String receiver, String cipher){
         count++;
         id = String.valueOf(count);
         this.sender = sender;
         this.receiver = receiver;
         this.cipher = cipher;
-        this.key = key;
     }
 
     public String getId(){
@@ -29,11 +27,5 @@ public class Message {
         return receiver;
     }
 
-    public String getCipher(){
-        return cipher;
-    }
-
-    public String getKey(){
-        return key;
-    }
+    public String getCipher() { return cipher; }
 }
