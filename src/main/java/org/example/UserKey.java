@@ -11,9 +11,9 @@ import java.security.PublicKey;
 import java.util.Base64;
 
 public class UserKey {
-    private static String user;
-    private static PrivateKey privateKey;
-    private static PublicKey publicKey;
+    private String user;
+    private PrivateKey privateKey;
+    private PublicKey publicKey;
 
     public UserKey(String user, PrivateKey privateKey, PublicKey publicKey){
         this.user = user;
@@ -41,7 +41,7 @@ public class UserKey {
         this.privateKey = privateKey;
     }
 
-    public static String encryptMessageAsymmetric(String message) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public String encryptMessageAsymmetric(String message) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
         byte[] encryptedBytes = cipher.doFinal(message.getBytes());
@@ -57,7 +57,7 @@ public class UserKey {
         return Base64.getEncoder().encodeToString(encryptedBytes);
     }
 
-    public static String decryptMessageAsymmetric(String message) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, NoSuchAlgorithmException {
+    public String decryptMessageAsymmetric(String message) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, NoSuchAlgorithmException {
         byte[] encryptedBytes = Base64.getDecoder().decode(message);
         Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         cipher.init(Cipher.DECRYPT_MODE, privateKey);

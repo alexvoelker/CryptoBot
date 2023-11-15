@@ -1,5 +1,6 @@
 package org.example;
 
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -287,7 +288,7 @@ public class BotCommands extends ListenerAdapter {
                             reply = "Your encrypted message is: " + encryptMessageSymmetric(key, message) + "\n\nYour secret key is: ||" + keyString + "||";
                         }
                     } catch (GeneralSecurityException ex) {
-                        throw new RuntimeException(ex);
+                        reply = "An error occurred. Maybe you put in an invalid key.";
                     }
                 } else if (type.equalsIgnoreCase("asymmetric")) {
                     try {
@@ -327,7 +328,7 @@ public class BotCommands extends ListenerAdapter {
                             reply = "Your encrypted message is: " + UserKey.encryptMessageAsymmetric(publicKey, message);
                         }
                     } catch (GeneralSecurityException ex) {
-                        throw new RuntimeException(ex);
+                        reply = "An error occurred. Maybe you put in an invalid key.";
                     }
                 } else {
                     reply = "The specified type of `" + type + "` does not match \"symmetric\" or \"asymmetric\"";
@@ -354,7 +355,7 @@ public class BotCommands extends ListenerAdapter {
                             reply = "You will need to specify a key for symmetric decryption.";
                         }
                     } catch (GeneralSecurityException ex) {
-                        throw new RuntimeException(ex);
+                        reply = "An error occurred. Either you entered an invalid key, or your key doesn't decrypt this message.";
                     }
                 } else if (type.equalsIgnoreCase("asymmetric")) {
                     if (e.getOption("key") == null) {
@@ -366,7 +367,7 @@ public class BotCommands extends ListenerAdapter {
                                     reply = "Your decrypted message is: " + userKeys.get(i).decryptMessageAsymmetric(message);
                                     found = true;
                                 } catch (GeneralSecurityException ex) {
-                                    throw new RuntimeException(ex);
+                                    reply = "An error occurred. The private key associated with your ID doesn't decrypt this message.";
                                 }
                             }
                         }
@@ -384,7 +385,7 @@ public class BotCommands extends ListenerAdapter {
 
                             reply = "Your decrypted message is: ||" + UserKey.decryptMessageAsymmetric(privateKey, message) + "||";
                         } catch (GeneralSecurityException ex) {
-                            throw new RuntimeException(ex);
+                            reply = "An error occurred. Either you entered an invalid key, or your key doesn't decrypt this message.";
                         }
                     }
                 } else {
@@ -401,18 +402,19 @@ public class BotCommands extends ListenerAdapter {
             case "message":
                 message = e.getOption("message").getAsString();
                 String user = e.getOption("user").getAsString();
+                String userParsed = user.replaceAll("<@", "").replaceAll(">", "");
                 String cipher = "";
 
                 try {
                     found = false;
                     for (int i = 0; i < userKeys.size(); i++) {
-                        if (userKeys.get(i).getUser().equals(e.getUser().getId())) {
+                        if (userKeys.get(i).getUser().equals(userParsed)) {
                             cipher = userKeys.get(i).encryptMessageAsymmetric(message);
                             found = true;
                         }
                     }
 
-                    if(found){
+                    if (found) {
                         Message msg = new Message("<@" + e.getUser().getId() + ">", user, cipher);
                         reply = msg.getReceiver() + " you were just sent a message from " + msg.getSender() + "\nThe cipher text is: " + msg.getCipher() +
                                 "\n\nYou can use the /decrypt command to decrypt the cipher with your private key, or use the following command:\n`/decrypt_message " + msg.getId() + "`";
@@ -436,58 +438,64 @@ public class BotCommands extends ListenerAdapter {
                 String userId = "<@" + e.getUser().getId() + ">";
                 found = false;
 
-                for (int i = 0; i < messages.size(); i++) {
-                    if (messages.get(i).getId().equals(id)) {
-                        if (userId.equals(messages.get(i).getReceiver())) {
-                            for (int j = 0; j < userKeys.size(); j++) {
-                                if (userKeys.get(i).getUser().equals(e.getUser().getId())) {
-                                    try {
-                                        found = true;
-                                        e.reply("The decrypted message is:\n" + userKeys.get(j).decryptMessageAsymmetric(messages.get(i).getCipher())).queue();
-                                    } catch (GeneralSecurityException ex) {
-                                        throw new RuntimeException(ex);
-                                    }
-                                    break;
+                if (!id.matches("\\d+") || (Integer.parseInt(id) < 1 || Integer.parseInt(id) > messages.size())) {
+                    e.reply("Invalid ID!").queue();
+                    found = true;
+                } else {
+                    Integer idInt = Integer.valueOf(id);
+                    Message selectedMessage = messages.get(idInt - 1);
+                    if (userId.equals(selectedMessage.getReceiver())) {
+                        for (int i = 0; i < userKeys.size(); i++) {
+                            if (userKeys.get(i).getUser().equals(e.getUser().getId())) {
+                                try {
+                                    found = true;
+                                    e.reply("The decrypted message is:\n" + userKeys.get(i).decryptMessageAsymmetric(selectedMessage.getCipher())).queue();
+                                } catch (GeneralSecurityException ex) {
+                                    e.reply("The private key on your ID doesn't work for this message! Maybe you regenerated keys.").queue();
                                 }
+                                break;
                             }
                         }
+                    } else {
+                        e.reply("You're not the intended receiver for this message!").queue();
+                        found = true;
                     }
                 }
-                if(!found){
-                    e.reply("You're not the intended receiver for this message!").queue();
+                if (!found) {
+                    e.reply("No keys could be found from your profile!").queue();
                 }
                 break;
             case "generate_keys":
                 userId = e.getUser().getId();
-                UserKey userKey = null;
+                int spot = 0;
+                found = false;
                 try {
                     for (int i = 0; i < userKeys.size(); i++) {
                         if (userKeys.get(i).getUser().equals(userId)) {
-                            userKey = userKeys.get(i);
-                            userKeys.remove(i);
+                            spot = i;
+                            found = true;
                         }
                     }
                     KeyPair keyPair = generateAsymmetricKeys();
                     String publicKey = new String(Base64.getEncoder().encode(keyPair.getPublic().getEncoded()));
                     String privateKey = new String(Base64.getEncoder().encode(keyPair.getPrivate().getEncoded()));
-                    if (userKey != null) {
-                        userKey.setPrivateKey(keyPair.getPrivate());
-                        userKey.setPublicKey(keyPair.getPublic());
+                    if (found) {
+                        userKeys.get(spot).setPrivateKey(keyPair.getPrivate());
+                        userKeys.get(spot).setPublicKey(keyPair.getPublic());
                         e.getUser().openPrivateChannel().flatMap(channel -> channel.sendMessage("Your old public and private keys are no longer associated with your ID." +
                                 " The new private key is: `" + privateKey + "`")).queue();
                     } else {
-                        userKey = new UserKey(userId, keyPair.getPrivate(), keyPair.getPublic());
+                        UserKey userKey = new UserKey(userId, keyPair.getPrivate(), keyPair.getPublic());
                         e.getUser().openPrivateChannel().flatMap(channel -> channel.sendMessage("Your private key is: `" + privateKey + "`")).queue();
+                        userKeys.add(userKey);
                     }
-                    userKeys.add(userKey);
                     e.reply("Your private key has been DM'd to you.\nYour public key is: `" + publicKey + "`").queue();
                 } catch (NoSuchAlgorithmException ex) {
                     throw new RuntimeException(ex);
                 }
                 break;
             case "get_public_key":
-                userId = e.getOption("user").getAsString();
-                userId = userId.substring(2, userId.length() - 1);
+                userId = e.getOption("user").getAsString().replaceAll("<@", "").replaceAll(">", "");
 
                 found = false;
                 for (int i = 0; i < userKeys.size(); i++) {

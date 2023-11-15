@@ -3,19 +3,19 @@ package org.example;
 public class Message {
 
     static int count;
-    String id;
+    Integer id;
     String sender;
     String receiver;
     String cipher;
     public Message(String sender, String receiver, String cipher){
         count++;
-        id = String.valueOf(count);
+        id = count;
         this.sender = sender;
         this.receiver = receiver;
         this.cipher = cipher;
     }
 
-    public String getId(){
+    public Integer getId(){
         return id;
     }
 
