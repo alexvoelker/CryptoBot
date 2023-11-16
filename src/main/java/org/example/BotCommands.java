@@ -1,6 +1,5 @@
 package org.example;
 
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -20,17 +19,17 @@ import java.util.*;
 
 public class BotCommands extends ListenerAdapter {
 
-    ArrayList<Message> messages = new ArrayList<>();
-    ArrayList<UserKey> userKeys = new ArrayList<>();
+    ArrayList<Message> messages = new ArrayList<>(); // List that keeps track of all messages for receiving and decryption purposes
+    ArrayList<UserKey> userKeys = new ArrayList<>(); // List that keeps track of all user's keys to associate a discord ID with a keypair for asymmetric encryption
 
     @Override
     public void onReady(@NotNull ReadyEvent readyEvent) {
-        ArrayList<CommandData> commands = new ArrayList<>();
+        ArrayList<CommandData> commands = new ArrayList<>(); // List for all commands to be added
 
-        //testing
+        //testing commands
         commands.add(Commands.slash("hi", "testing"));
 
-        // About/Help
+        // About/Help commands
         commands.add(Commands.slash("about", "The bot command about page!"));
         commands.add(Commands.slash("help", "A help page to learn how commands work")
                 .addOption(OptionType.STRING, "command", "the command to learn more about", false));
@@ -42,19 +41,19 @@ public class BotCommands extends ListenerAdapter {
                 .addOption(OptionType.STRING, "data", "Data to be converted", true));
 
 
-        //AES symmetric key encryption
+        // AES symmetric key encryption commands
         commands.add(Commands.slash("message", "Encrypt a message for a user")
                 .addOption(OptionType.STRING, "message", "Input message", true)
                 .addOption(OptionType.STRING, "user", "Input user", true));
 
-        //Public-private key encryption
+        // RSA asymmetric key encryption commands
         commands.add(Commands.slash("generate_keys", "Generate an asymmetric keypair"));
         commands.add(Commands.slash("get_public_key", "Generate an asymmetric keypair")
                 .addOption(OptionType.STRING, "user", "User to get the public key from", true));
         commands.add(Commands.slash("decrypt_message", "Decrypt a message from another user")
                 .addOption(OptionType.STRING, "id", "ID of the message", true));
 
-        //Encryption and decryption (either symmetric or asymmetric)
+        // General encryption and decryption (either symmetric or asymmetric)
         commands.add(Commands.slash("encrypt", "Encrypt a message")
                 .addOption(OptionType.STRING, "message", "Message to be encrypted", true)
                 .addOption(OptionType.STRING, "type", "Type of encryption (asymmetric or symmetric)", true)
@@ -65,7 +64,7 @@ public class BotCommands extends ListenerAdapter {
                 .addOption(OptionType.STRING, "type", "Type of encryption (asymmetric or symmetric)", true)
                 .addOption(OptionType.STRING, "key", "Private Key for decryption", false));
 
-        // Hashing Functionality
+        // Hashing commands
         commands.add(Commands.slash("hash", "Hash a message")
                 .addOption(OptionType.STRING, "message", "Input message", true)
                 .addOption(OptionType.STRING, "hash_algorithm", "Hash Algorithm: MD5, SHA-1, SHA-256", true));
@@ -76,17 +75,17 @@ public class BotCommands extends ListenerAdapter {
 
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent e) {
-        String reply = "error";
+        String reply = "error"; // defines the reply string to be error incase it doesn't get changed
         switch (e.getName()) {
-            case "hi":
-                e.reply("hi").queue();
+            case "hi": // /hi
+                e.reply("hi").queue(); // just respond with hi :)
                 break;
-            case "help":
+            case "help": // /help {command}
                 try {
                     String helpCommand = e.getOption("command").getAsString();
                     // Help page for a specific bot command
 
-                    switch (helpCommand) {
+                    switch (helpCommand) { // loops through each possible {command} input
                         case "about":
                             reply = "Run the `about` command for some information about this discord bot.";
                             break;
@@ -173,6 +172,7 @@ public class BotCommands extends ListenerAdapter {
                                     "> Verifies the message with the corresponding hash\n";
                             break;
                         default:
+                            e.reply("An unexpected error occurred! Sorry!").queue();
                             throw new IllegalArgumentException("Break towards the default help page");
                     }
                     e.reply("# " + helpCommand.toUpperCase() + " Documentation\n\n" + reply).queue();
@@ -196,7 +196,7 @@ public class BotCommands extends ListenerAdapter {
                             "\n\n### `verify`\n\tVerify a hashed message\n\tParameters: `[message]` `[hash]` `[hash_algorithm]`").queue();
                 }
                 break;
-            case "about":
+            case "about": // /about
                 String response = "Thanks for using the CryptoBot! \n\n" +
                         "This is a cryptography tool, created by Group 2 in CNIT 370, to help you learn about " +
                         "encryption, decryption, and hashing in an active environment.\n\n" +
@@ -207,7 +207,7 @@ public class BotCommands extends ListenerAdapter {
                         "https://github.com/alexvoelker/CryptoBot";
                 e.reply(response).queue();
                 break;
-            case "hash":
+            case "hash": // /hash {message} {hash_algorithm}
                 String message = e.getOption("message").getAsString();
                 String hash_algorithm = e.getOption("hash_algorithm").getAsString().toUpperCase();
 
@@ -220,84 +220,93 @@ public class BotCommands extends ListenerAdapter {
                     // Convert the array of bytes to a string.
                     String hashed_message = DatatypeConverter.printBase64Binary(digestOfMessage);
 
-                    e.reply("Initial message: `" + message + "`\nHash Algorithm: `"
-                            + hash_algorithm + "`\nHashed Message (in base64): `" + hashed_message + "`").queue();
+                    reply = "Initial message: `" + message + "`\nHash Algorithm: `"
+                            + hash_algorithm + "`\nHashed Message (in base64): `" + hashed_message + "`";
 
                 } catch (NoSuchAlgorithmException ex) {
-                    e.reply("The specified hashing algorithm `" + hash_algorithm
-                            + "` is invalid. Try: MD5, SHA-1 or SHA-256").queue();
+                    e.reply("The specified hashing algorithm `" + hash_algorithm + "` is invalid. Try: MD5, SHA-1 or SHA-256").queue();
                 }
+
+                if (reply.length() > 2000) { // discord does not allow messages over 2000 characters, so check that here
+                    e.reply("Sorry! The output will be too long. Try shortening your input.").queue();
+                } else {
+                    e.reply(reply).queue(); // reply to the message
+                }
+
                 break;
-            case "convert":
-                String type1 = e.getOption("type1").getAsString();
-                String type2 = e.getOption("type2").getAsString();
-                String data = e.getOption("data").getAsString();
+            case "convert": // /convert {type1} {type2} {data}
+                String type1 = e.getOption("type1").getAsString(); // to be converted from
+                String type2 = e.getOption("type2").getAsString(); // to be converted to
+                String data = e.getOption("data").getAsString(); // data to be converted
 
                 if (type1.equalsIgnoreCase("bits")) {
-                    reply = convertBits(type2.toLowerCase(), data);
+                    reply = convertBits(type2.toLowerCase(), data); // sets the reply to encrypt from bits to type2 using the convertBits method
                 } else if (type1.equalsIgnoreCase("string")) {
-                    reply = convertString(type2.toLowerCase(), data);
+                    reply = convertString(type2.toLowerCase(), data); // sets the reply to encrypt from string to type2 using the convertString method
                 } else if (type1.equalsIgnoreCase("hex")) {
-                    reply = convertHex(type2.toLowerCase(), data);
+                    reply = convertHex(type2.toLowerCase(), data); // sets the reply to encrypt from hex to type2 using the convertHex method
                 } else if (type1.equalsIgnoreCase("base64")) {
-                    reply = convertBase64(type2.toLowerCase(), data);
+                    reply = convertBase64(type2.toLowerCase(), data); // sets the reply to encrypt from base64 to type2 using the convertBase64 method
                 } else {
-                    e.reply("Incorrect value: \"" + type1 + "\" does not match Bits, String, Hex, or Base64.").queue();
+                    e.reply("Incorrect value: \"" + type1 + "\" does not match Bits, String, Hex, or Base64.").queue(); // incorrect input
                 }
 
-                if (reply.length() > 2000) {
-                    e.reply("Sorry! The output will be too long. Try shortening your input.");
+                if (reply.length() > 2000) { // discord does not allow messages over 2000 characters, so check that here
+                    e.reply("Sorry! The output will be too long. Try shortening your input.").queue();
                 } else {
-                    e.reply(reply).queue();
+                    e.reply(reply).queue(); // reply to the message
                 }
 
                 break;
-            case "encrypt":
-                String type = (e.getOption("type").getAsString());
-                message = (e.getOption("message").getAsString());
+            case "encrypt": // /encrypt {type} {message} {mode} {key}
+                String type = (e.getOption("type").getAsString()); // asymmetric or symmetric
+                message = (e.getOption("message").getAsString()); // message to be encrypted
                 String mode = "";
 
+                // the following will either get the mode input, or set it to default values
                 if (e.getOption("mode") != null) {
-                    mode = e.getOption("mode").getAsString();
+                    mode = e.getOption("mode").getAsString(); // sets mode to user input
                 } else if (type.equalsIgnoreCase("symmetric")) {
-                    mode = "AES-128";
+                    mode = "AES-128"; // sets mode to AES-128 if no user input and type is symmetric
                 } else if (type.equalsIgnoreCase("asymmetric")) {
-                    mode = "RSA";
+                    mode = "RSA"; // sets mode to RSA if no user input and type is asymmetric
                 }
 
                 SecretKey key;
                 boolean found = false;
 
-                mode = mode.replaceAll("AES-", "");
-                String[] validModesSymmetricArray = {"128", "192", "256"};
-                String[] validModesAsymmetricArray = {"RSA"};
-                List<String> validModesSymmetric = Arrays.asList(validModesSymmetricArray);
-                List<String> validModesAsymmetric = Arrays.asList(validModesAsymmetricArray);
+                mode = mode.replaceAll("AES-", ""); // ensures mode only includes the bit level, since only AES is supported
+                String[] validModesSymmetricArray = {"128", "192", "256"}; // valid modes for symmetric
+                String[] validModesAsymmetricArray = {"RSA"}; // valid modes for asymmetric
+                List<String> validModesSymmetric = Arrays.asList(validModesSymmetricArray); // convert to list
+                List<String> validModesAsymmetric = Arrays.asList(validModesAsymmetricArray); // convert to list
 
                 if (type.equalsIgnoreCase("symmetric")) {
                     try {
-                        if (!validModesSymmetric.contains(mode)) {
+                        if (!validModesSymmetric.contains(mode)) { // mode validation for symmetric
                             reply = "Your specified mode of `" + mode + "` is not a valid mode for asymmetric encryption. Valid modes include: AES-128, AES-196, and AES-256";
-                        } else if (e.getOption("key") != null) {
-                            byte[] inputKeyBytes = e.getOption("key").getAsString().getBytes();
-                            key = new SecretKeySpec(inputKeyBytes, 0, inputKeyBytes.length, "AES");
-                            reply = "Your encrypted message is: " + encryptMessageSymmetric(key, message);
-                        } else {
-                            key = generateSymmetricKey(Integer.parseInt(mode));
-                            String keyString = DatatypeConverter.printBase64Binary(key.getEncoded());
-                            reply = "Your encrypted message is: " + encryptMessageSymmetric(key, message) + "\n\nYour secret key is: ||" + keyString + "||";
+                        } else if (e.getOption("key") != null) { // a key was provided by user
+                            byte[] inputKeyBytes = e.getOption("key").getAsString().getBytes(); // converts user input key
+                            key = new SecretKeySpec(inputKeyBytes, 0, inputKeyBytes.length, "AES"); // gets the key
+                            reply = "Your encrypted message is: " + encryptMessageSymmetric(key, message); // reply message
+                        } else { // auto generates get if none provided
+                            key = generateSymmetricKey(Integer.parseInt(mode)); // generates key
+                            String keyString = DatatypeConverter.printBase64Binary(key.getEncoded()); //gets string of key to return to user
+                            reply = "Your encrypted message is: " + encryptMessageSymmetric(key, message) + "\n\nYour secret key is: ||" + keyString + "||"; //reply message
                         }
                     } catch (GeneralSecurityException ex) {
-                        reply = "An error occurred. Maybe you put in an invalid key.";
+                        reply = "An error occurred. Maybe you put in an invalid key."; // catch message; this should only happen if the key input was invalid
                     }
                 } else if (type.equalsIgnoreCase("asymmetric")) {
                     try {
-                        if (message.getBytes().length > 117) {
+                        if (message.getBytes().length > 117) { // message validation; methods can't support over 117 bytes
                             reply = "Sorry! Your message was too long. We can only support up to 117 bytes of information for asymmetric encryption.\n" +
                                     "Your input included `" + message.getBytes().length + "` of information. Try shortening your message.";
-                        } else if (!validModesAsymmetric.contains(mode)) {
+                        } else if (!validModesAsymmetric.contains(mode)) { // mode validation for asymmetric
                             reply = "Your specified mode of `" + mode + "` is not a valid mode for asymmetric encryption. Valid modes include: RSA";
-                        } else if (e.getOption("key") == null) {
+                        } else if (e.getOption("key") == null) { // checks if a user hasn't provided a key
+
+                            // the following will try to see if a user has an associated private key with their discord id. if they do, that will be used by default
                             found = false;
                             for (int i = 0; i < userKeys.size(); i++) {
                                 if (userKeys.get(i).getUser().equals(e.getUser().getId())) {
@@ -306,6 +315,7 @@ public class BotCommands extends ListenerAdapter {
                                 }
                             }
 
+                            // if there is no private key associated with their discord id, a key pair will be generated for them
                             if (!found) {
                                 KeyPair keyPair = generateAsymmetricKeys();
                                 PrivateKey privateKey = keyPair.getPrivate();
@@ -320,6 +330,7 @@ public class BotCommands extends ListenerAdapter {
                             }
 
                         } else {
+                            // if a key has been provided, it is decoded and used to decrypt the message
                             byte[] publicKeyBytes = Base64.getDecoder().decode(e.getOption("key").getAsString());
                             X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicKeyBytes);
                             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
@@ -328,63 +339,65 @@ public class BotCommands extends ListenerAdapter {
                             reply = "Your encrypted message is: " + UserKey.encryptMessageAsymmetric(publicKey, message);
                         }
                     } catch (GeneralSecurityException ex) {
-                        reply = "An error occurred. Maybe you put in an invalid key.";
+                        reply = "An error occurred. Your private key cannot decrypt this message."; // error handling should occur if the user's key can't decrypt the message
                     }
                 } else {
-                    reply = "The specified type of `" + type + "` does not match \"symmetric\" or \"asymmetric\"";
+                    reply = "The specified type of `" + type + "` does not match \"symmetric\" or \"asymmetric\""; // type validation
                 }
 
-                if (reply.length() > 2000) {
-                    e.reply("Sorry! The output will be too long. Try shortening your input.");
+                if (reply.length() > 2000) { // discord does not allow messages over 2000 characters, so check that here
+                    e.reply("Sorry! The output will be too long. Try shortening your input.").queue();
                 } else {
-                    e.reply(reply).queue();
+                    e.reply(reply).queue(); // reply message
                 }
 
                 break;
-            case "decrypt":
-                message = e.getOption("message").getAsString();
-                type = (e.getOption("type").getAsString());
+            case "decrypt": // /decrypt {message} {type} {key}
+                message = e.getOption("message").getAsString(); // cipher text to be decrypted
+                type = (e.getOption("type").getAsString()); // asymmetric or symmetric
 
                 if (type.equalsIgnoreCase("symmetric")) {
                     try {
-                        if (e.getOption("key") != null) {
+                        if (e.getOption("key") != null) {  // decodes and uses the provided key for symmetric decryption
                             byte[] keyBytes = Base64.getDecoder().decode(e.getOption("key").getAsString());
                             key = new SecretKeySpec(keyBytes, "AES");
                             reply = "Your decrypted message is: ||" + decryptMessageSymmetric(key, message) + "||";
-                        } else {
-                            reply = "You will need to specify a key for symmetric decryption.";
+                        } else { // ensures a key is provided for symmetric decryption
+                            reply = "You will need to specify a key for symmetric decryption. Add \"key:KEY\" to your command";
                         }
                     } catch (GeneralSecurityException ex) {
-                        reply = "An error occurred. Either you entered an invalid key, or your key doesn't decrypt this message.";
+                        reply = "An error occurred. Either you entered an invalid key, or your key doesn't decrypt this message."; // error handling if key can't decrypt message
                     }
                 } else if (type.equalsIgnoreCase("asymmetric")) {
                     if (e.getOption("key") == null) {
+                        // tries to use a private key associated with discord id to decrypt message
                         found = false;
-
                         for (int i = 0; i < userKeys.size(); i++) {
                             if (userKeys.get(i).getUser().equals(e.getUser().getId())) {
+                                found = true;
                                 try {
                                     reply = "Your decrypted message is: " + userKeys.get(i).decryptMessageAsymmetric(message);
-                                    found = true;
                                 } catch (GeneralSecurityException ex) {
                                     reply = "An error occurred. The private key associated with your ID doesn't decrypt this message.";
                                 }
                             }
                         }
 
+                        // if no key pair for the user was found, let them know to generate keys
                         if (!found) {
                             reply = "You do not have a private key associated with your ID! Try `/generate_keys` to get a key, or add a private key to this message to decrypt with.";
                         }
 
                     } else {
                         try {
+                            // decode the inputted key and use it to decrypt
                             byte[] privateKeyBytes = Base64.getDecoder().decode(e.getOption("key").getAsString());
                             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
                             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
                             PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
 
                             reply = "Your decrypted message is: ||" + UserKey.decryptMessageAsymmetric(privateKey, message) + "||";
-                        } catch (GeneralSecurityException ex) {
+                        } catch (GeneralSecurityException ex) { // error handling if the key doesn't work
                             reply = "An error occurred. Either you entered an invalid key, or your key doesn't decrypt this message.";
                         }
                     }
@@ -392,20 +405,21 @@ public class BotCommands extends ListenerAdapter {
                     reply = "The specified type of `" + type + "` does not match \"symmetric\" or \"asymmetric\"";
                 }
 
-                if (reply.length() > 2000) {
-                    e.reply("Sorry! The output will be too long. Try shortening your input.");
+                if (reply.length() > 2000) { // discord does not allow messages over 2000 characters, so check that here
+                    e.reply("Sorry! The output will be too long. Try shortening your input.").queue();
                 } else {
-                    e.reply(reply).queue();
+                    e.reply(reply).queue(); // reply message
                 }
 
                 break;
-            case "message":
-                message = e.getOption("message").getAsString();
-                String user = e.getOption("user").getAsString();
-                String userParsed = user.replaceAll("<@", "").replaceAll(">", "");
+            case "message": // /message {message} {user}
+                message = e.getOption("message").getAsString(); // message content
+                String user = e.getOption("user").getAsString(); // user intended to receive message
+                String userParsed = user.replaceAll("<@", "").replaceAll(">", ""); // just discord id of the user, removes @
                 String cipher = "";
 
                 try {
+                    // tries to find the public key of the receiver and encrypt the message
                     found = false;
                     for (int i = 0; i < userKeys.size(); i++) {
                         if (userKeys.get(i).getUser().equals(userParsed)) {
@@ -415,88 +429,84 @@ public class BotCommands extends ListenerAdapter {
                     }
 
                     if (found) {
-                        Message msg = new Message("<@" + e.getUser().getId() + ">", user, cipher);
+                        Message msg = new Message("<@" + e.getUser().getId() + ">", user, cipher); // create a message instance
                         reply = msg.getReceiver() + " you were just sent a message from " + msg.getSender() + "\nThe cipher text is: " + msg.getCipher() +
                                 "\n\nYou can use the /decrypt command to decrypt the cipher with your private key, or use the following command:\n`/decrypt_message " + msg.getId() + "`";
-                        if (reply.length() > 2000) {
-                            e.reply("Sorry! The output will be too long. Try shortening your input.");
+                        if (reply.length() > 2000) { // discord does not allow messages over 2000 characters, so check that here
+                            e.reply("Sorry! The output will be too long. Try shortening your input.").queue();
                         } else {
-                            messages.add(msg);
+                            messages.add(msg); // adds the message instance to the messages list to keep track of it
+                            e.reply(reply).queue();
                         }
-                    } else {
-                        reply = "The receiver does not have a pair of keys generated. Please let them know to run the command `/generate_keys`";
+                    } else { // no public key found for the receiver
+                        e.reply("The receiver does not have a pair of keys generated. Please let them know to run the command `/generate_keys`").queue();
                     }
-
-                    e.reply(reply).queue();
-
-                } catch (GeneralSecurityException ex) {
-                    throw new RuntimeException(ex);
+                } catch (GeneralSecurityException ex) { // exception handling if the message was too long to encrypt
+                    e.reply("An error occurred! Maybe your message was too long.").queue();
                 }
                 break;
-            case "decrypt_message":
-                String id = e.getOption("id").getAsString();
-                String userId = "<@" + e.getUser().getId() + ">";
+            case "decrypt_message": // /decrypt_message {id}
+                String id = e.getOption("id").getAsString(); // id of the message
+                String userId = "<@" + e.getUser().getId() + ">"; // userId as it would be stored in the message instance
                 found = false;
 
-                if (!id.matches("\\d+") || (Integer.parseInt(id) < 1 || Integer.parseInt(id) > messages.size())) {
+                if (!id.matches("\\d+") || (Integer.parseInt(id) < 1 || Integer.parseInt(id) > messages.size())) { // validates id input
                     e.reply("Invalid ID!").queue();
                     found = true;
                 } else {
                     Integer idInt = Integer.valueOf(id);
-                    Message selectedMessage = messages.get(idInt - 1);
-                    if (userId.equals(selectedMessage.getReceiver())) {
-                        for (int i = 0; i < userKeys.size(); i++) {
-                            if (userKeys.get(i).getUser().equals(e.getUser().getId())) {
-                                try {
-                                    found = true;
-                                    e.reply("The decrypted message is:\n" + userKeys.get(i).decryptMessageAsymmetric(selectedMessage.getCipher())).queue();
-                                } catch (GeneralSecurityException ex) {
-                                    e.reply("The private key on your ID doesn't work for this message! Maybe you regenerated keys.").queue();
-                                }
-                                break;
+                    Message selectedMessage = messages.get(idInt - 1); // gets the message instance of id
+                    // the following will find the private key associated with the user and attempt to decrypt the message
+                    for (int i = 0; i < userKeys.size(); i++) {
+                        if (userKeys.get(i).getUser().equals(e.getUser().getId())) {
+                            found = true;
+                            try {
+                                e.reply("The decrypted message is:\n" + userKeys.get(i).decryptMessageAsymmetric(selectedMessage.getCipher())).queue();
+                            } catch (GeneralSecurityException ex) { // error handling if the user's private key can't decrypt the message
+                                e.reply("The private key on your ID doesn't work for this message! Either you are not the intended " +
+                                        "user for this message, or maybe you regenerated keys.").queue();
                             }
+                            break;
                         }
-                    } else {
-                        e.reply("You're not the intended receiver for this message!").queue();
-                        found = true;
                     }
                 }
-                if (!found) {
+                if (!found) { // reply if no private key was found for the user's profile
                     e.reply("No keys could be found from your profile!").queue();
                 }
                 break;
-            case "generate_keys":
-                userId = e.getUser().getId();
-                int spot = 0;
+            case "generate_keys": // /generate_keys
+                userId = e.getUser().getId(); // discord ID to associate with key pair
+                int spot = 0; // index of user if they already have a keypair
                 found = false;
                 try {
-                    for (int i = 0; i < userKeys.size(); i++) {
+                    for (int i = 0; i < userKeys.size(); i++) { // finds if the user already has a key pair
                         if (userKeys.get(i).getUser().equals(userId)) {
                             spot = i;
                             found = true;
                         }
                     }
-                    KeyPair keyPair = generateAsymmetricKeys();
-                    String publicKey = new String(Base64.getEncoder().encode(keyPair.getPublic().getEncoded()));
-                    String privateKey = new String(Base64.getEncoder().encode(keyPair.getPrivate().getEncoded()));
-                    if (found) {
+                    KeyPair keyPair = generateAsymmetricKeys(); // generates key pair
+                    String publicKey = new String(Base64.getEncoder().encode(keyPair.getPublic().getEncoded())); // gets string of public key
+                    String privateKey = new String(Base64.getEncoder().encode(keyPair.getPrivate().getEncoded())); // gets string of private key
+                    if (found) { // resets the public and private key of an existing user
                         userKeys.get(spot).setPrivateKey(keyPair.getPrivate());
                         userKeys.get(spot).setPublicKey(keyPair.getPublic());
                         e.getUser().openPrivateChannel().flatMap(channel -> channel.sendMessage("Your old public and private keys are no longer associated with your ID." +
                                 " The new private key is: `" + privateKey + "`")).queue();
-                    } else {
+                    } else { // creates a new instance in userKeys for the user
                         UserKey userKey = new UserKey(userId, keyPair.getPrivate(), keyPair.getPublic());
                         e.getUser().openPrivateChannel().flatMap(channel -> channel.sendMessage("Your private key is: `" + privateKey + "`")).queue();
                         userKeys.add(userKey);
                     }
                     e.reply("Your private key has been DM'd to you.\nYour public key is: `" + publicKey + "`").queue();
-                } catch (NoSuchAlgorithmException ex) {
-                    throw new RuntimeException(ex);
+                } catch (NoSuchAlgorithmException ex) { // generic error handling incase something goes wrong
+                    e.reply("An error occurred! Sorry!").queue();
                 }
                 break;
-            case "get_public_key":
-                userId = e.getOption("user").getAsString().replaceAll("<@", "").replaceAll(">", "");
+            case "get_public_key": // /get_public_key {user}
+                userId = e.getOption("user").getAsString().replaceAll("<@", "").replaceAll(">", ""); // parses user input
 
+                // loop through userKeys and attempt to find the public key of the specified user
                 found = false;
                 for (int i = 0; i < userKeys.size(); i++) {
                     if (userKeys.get(i).getUser().equals(userId)) {
@@ -505,8 +515,8 @@ public class BotCommands extends ListenerAdapter {
                     }
                 }
 
-                if (!found) {
-                    reply = "Could not find a public key associated with this user. Maybe ask them to generate one.";
+                if (!found) { // response if the user was not found
+                    reply = "Either this user doesn't exist, or they don't have an associated key pair. The user can generate a key pair with `/generate_keys`";
                 }
 
                 e.reply(reply).queue();
@@ -514,6 +524,13 @@ public class BotCommands extends ListenerAdapter {
         }
     }
 
+    /**
+     * Convert bits to a specified encoding method.
+     *
+     * @param type Type of encoding method to encode to
+     * @param data Data to be encoded
+     * @return The output of the conversion
+     */
     public String convertBits(String type, String data) {
         switch (type) {
             case "base64":
@@ -528,6 +545,13 @@ public class BotCommands extends ListenerAdapter {
         return ("Incorrect value: \"" + type + "\" does not match Bits, String, Hex, or Base64.");
     }
 
+    /**
+     * Convert string to a specified encoding method.
+     *
+     * @param type Type of encoding method to encode to
+     * @param data Data to be encoded
+     * @return The output of the conversion
+     */
     public String convertString(String type, String data) {
         switch (type) {
             case "base64":
@@ -542,6 +566,13 @@ public class BotCommands extends ListenerAdapter {
         return ("Incorrect value: \"" + type + "\" does not match Bits, String, Hex, or Base64.");
     }
 
+    /**
+     * Convert hex to a specified encoding method.
+     *
+     * @param type Type of encoding method to encode to
+     * @param data Data to be encoded
+     * @return The output of the conversion
+     */
     public String convertHex(String type, String data) {
         switch (type) {
             case "base64":
@@ -556,6 +587,13 @@ public class BotCommands extends ListenerAdapter {
         return ("Incorrect value: \"" + type + "\" does not match Bits, String, Hex, or Base64.");
     }
 
+    /**
+     * Convert base64 to a specified encoding method.
+     *
+     * @param type Type of encoding method to encode to
+     * @param data Data to be encoded
+     * @return The output of the conversion
+     */
     public String convertBase64(String type, String data) {
         switch (type) {
             case "base64":
@@ -570,6 +608,12 @@ public class BotCommands extends ListenerAdapter {
         return ("Incorrect value: \"" + type + "\" does not match Bits, String, Hex, or Base64.");
     }
 
+    /**
+     * Convert bits to a string.
+     *
+     * @param bits Bits to be converted
+     * @return The converted string
+     */
     public String bitsToString(String bits) {
         bits = bits.replaceAll(" ", "");
         byte[] bytes = new byte[bits.length() / 8];
@@ -582,6 +626,12 @@ public class BotCommands extends ListenerAdapter {
         return str;
     }
 
+    /**
+     * Convert string to bits.
+     *
+     * @param str String to be converted
+     * @return The bits in the form of a string
+     */
     public String stringToBits(String str) {
         String bits = "";
         String value = "";
@@ -594,24 +644,54 @@ public class BotCommands extends ListenerAdapter {
         return bits;
     }
 
+    /**
+     * Convert hex to a string.
+     *
+     * @param hex Bits to be converted
+     * @return The converted string
+     */
     public String hexToString(String hex) {
         return new String(DatatypeConverter.parseHexBinary(hex));
     }
 
+    /**
+     * Convert string to hex.
+     *
+     * @param str String to be converted
+     * @return The hex in the form of a string
+     */
     public String stringToHex(String str) {
         byte[] bytes = str.getBytes();
         return DatatypeConverter.printHexBinary(bytes);
     }
 
+    /**
+     * Convert base64 to a string.
+     *
+     * @param base64 Bits to be converted
+     * @return The converted string
+     */
     public String base64ToString(String base64) {
         return new String(DatatypeConverter.parseBase64Binary(base64));
     }
 
+    /**
+     * Convert string to base64.
+     *
+     * @param str String to be converted
+     * @return The base64 in the form of a string
+     */
     public String stringToBase64(String str) {
         byte[] bytes = str.getBytes();
         return DatatypeConverter.printBase64Binary(bytes);
     }
 
+    /**
+     * Generate a secret key for symmetric encryption.
+     *
+     * @param aes The bit level for the AES key
+     * @return The generated secret key
+     */
     public SecretKey generateSymmetricKey(int aes) throws NoSuchAlgorithmException {
         KeyGenerator generator = KeyGenerator.getInstance("AES");
         generator.init(aes);
@@ -619,6 +699,13 @@ public class BotCommands extends ListenerAdapter {
         return key;
     }
 
+    /**
+     * Encrypt a message using symmetric encryption.
+     *
+     * @param secretKey The key to use in encryption
+     * @param message The message to encrypt
+     * @return The ciphertext
+     */
     public String encryptMessageSymmetric(SecretKey secretKey, String message) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.ENCRYPT_MODE, secretKey);
@@ -627,6 +714,13 @@ public class BotCommands extends ListenerAdapter {
         return Base64.getEncoder().encodeToString(encryptedBytes);
     }
 
+    /**
+     * Decrypt a message using symmetric encryption.
+     *
+     * @param secretKey The key to use in decryption
+     * @param message The ciphertext to decrypt
+     * @return The plaintext
+     */
     public static String decryptMessageSymmetric(SecretKey secretKey, String message) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, NoSuchAlgorithmException {
         byte[] encryptedBytes = Base64.getDecoder().decode(message);
         Cipher cipher = Cipher.getInstance("AES");
@@ -636,6 +730,11 @@ public class BotCommands extends ListenerAdapter {
         return new String(decryptedBytes);
     }
 
+    /**
+     * Generate a key pair for asymmetric encryption.
+     *
+     * @return The generated key pair
+     */
     public static KeyPair generateAsymmetricKeys() throws NoSuchAlgorithmException {
         KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("RSA");
         keyPairGen.initialize(1024);
