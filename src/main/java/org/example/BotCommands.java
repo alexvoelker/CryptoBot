@@ -48,7 +48,7 @@ public class BotCommands extends ListenerAdapter {
 
         // RSA asymmetric key encryption commands
         commands.add(Commands.slash("generate_keys", "Generate an asymmetric keypair"));
-        commands.add(Commands.slash("get_public_key", "Generate an asymmetric keypair")
+        commands.add(Commands.slash("get_public_key", "Get the public key of an asymmetric keypair")
                 .addOption(OptionType.STRING, "user", "User to get the public key from", true));
         commands.add(Commands.slash("decrypt_message", "Decrypt a message from another user")
                 .addOption(OptionType.STRING, "id", "ID of the message", true));
@@ -85,94 +85,113 @@ public class BotCommands extends ListenerAdapter {
                     String helpCommand = e.getOption("command").getAsString();
                     // Help page for a specific bot command
 
-                    switch (helpCommand) { // loops through each possible {command} input
+                    switch (helpCommand) { // goes through each possible {command} input
+                        case "help":
+                            throw new IllegalArgumentException("Break towards the default help page");
                         case "about":
-                            reply = "Run the `about` command for some information about this discord bot.";
+                            reply = "Run the `about` command for some information about this discord bot.\n```/about```";
                             break;
                         case "convert":
-                            reply = "## Encoding and Decoding" +
+                            reply = "## Encoding and Decoding\n" +
                                     "This a system where different encoding standards can be used to convert plaintext into different types of data\n" +
-                                    "\n" +
                                     "**Supported Datatypes**: String, Hex (hexadecimal), Bits (binary), Base64 \n\n" +
-                                    "## Data types\n" +
-                                    "### Bits (binary)\n" +
-                                    "Very basic form of data with a Base-2 (2 character) structure where all everything is represented by either a 1 or 0\n" +
-                                    "### String\n" +
-                                    "Sequence of characters that is in a human-readable form\n" +
-                                    "### Hex\n" +
-                                    "Form of data in a Base-16 (16 character) structure where data is represented by 0-9 and A-F\n" +
-                                    "### Base64\n" +
-                                    "Form of data in a Base-64 (64 character) structure with the data form defined by RFC 4648\n\n" +
+                                    "## Data types\n\n" +
+                                    "### Bits (binary)\n\n" +
+                                    "> Very basic form of data with a Base-2 (2 character) structure where all everything is represented by either a 1 or 0\n" +
+                                    "### String\n\n" +
+                                    "> Sequence of characters that is in a human-readable form\n" +
+                                    "### Hex\n\n" +
+                                    "> Form of data in a Base-16 (16 character) structure where data is represented by 0-9 and A-F\n" +
+                                    "### Base64\n\n" +
+                                    "> Form of data in a Base-64 (64 character) structure with the data form defined by RFC 4648\n\n" +
                                     "## Usage\n" +
                                     "**Encoding Modes**: *Bits, String, Hex, Base64*\n" +
-                                    "```/convert [input type] [output type] data```\n" +
-                                    "> Allows for data to be converted using different encoding standards\n" +
-                                    "Example: `/convert String Base64 Hello World!`";
+                                    "```/convert type1:[input type] type2:[output type] data:[data]```\n\n" +
+                                    "> Allows for data to be converted using different encoding standards\n\n" +
+                                    "Example: ```/convert type1:String type2:Base64 data:Hello World!```";
                             break;
-                        case "encrypt": // TODO finish this when the discord channel is updated
-                            reply = "## CryptoBot Symmetric-key Implementations: Encryption\n" +
-                                    "**Encryption Modes:** AES-128, AES-192, AES-256\n" +
-                                    "*the number determines the bits of the outputted secret key (AES-256 -> 256 bits)*\n" +
-                                    " \n" +
-                                    "```/encrypt symmetric [message] [encryption]```  \n" +
-                                    "> Allows for messages to be encrypted using specific symmetric-key algorithms\n" +
-                                    " \n" +
-                                    "Example: `/encrypt symmetric Hello World! AES-128`\n\n" +
-                                    "## CryptoBot Asymmetric-Key Implementations: Encryption\n" +
-                                    "**Encryption Modes:** RSA-1024, RSA-2048, RSA-3072, RSA-4096 \n" +
-                                    "The number determines the bits of the outputted secret key (RSA-2048 -> 2048 bits)\n" +
-                                    "```/encrypt asymmetric [message] [encryption]```\n" +
-                                    "> Allows for messages to be encrypted using specific asymmetric-key algorithms\n\n" +
-                                    "Example: `/encrypt asymmetric Hello World! RSA-1024`\n";
+                        case "generate_keys":
+                            reply = "Generate a public-private keypair. " +
+                                    "\n\nThe CryptoBot will message you your private key, and send your public key in " +
+                                    "the channel that this command is executed in. " +
+                                    "\n\nAnyone can encrypt messages to you using this generated public key." +
+                                    "```/generate_keys```";
                             break;
-                        case "decrypt": // TODO finish this when the discord channel is updated
-                            reply = "## CryptoBot Symmetric-key Implementations: Decryption\n" +
-                                    "```/decrypt symmetric [message] [secret key]```  \n" +
-                                    "> Decrypts the message cipher text outputted from CryptoBot with the corresponding secret key\n" +
-                                    " \n" +
-                                    "Example: `/decrypt symmetric ylj6IYAW0chOtmIRjbjITA== TiyllEm0hqJapmZpljAh1Q==`\n" +
-                                    " \n## CryptoBot Asymmetric-Key Implementations: Decryption\n" +
-                                    "**Encryption Mode:** RSA \n" +
-                                    "```/decrypt asymmetric [message] [private key]```\n" +
-                                    "> Decrypts the message cipher text outputted from CryptoBot with " +
-                                    "the corresponding private key\n\n" +
-                                    "Example: `/decrypt asymmetric ylj6IYAW0chOtmIRjbjITA==` `TiyllEm0hqJapmZpljAh1Q==`";
+                        case "get_public_key":
+                            reply = "After a user generates a key using the `/generate_keys` command, " +
+                                    "this retrieves that user's public key.\n\n" +
+                                    "```/get_public_key user:[User]```\n\n" +
+                                    "Example: ```/get_public_key user:@jas_0_3```";
+                            break;
+                        case "decrypt_message":
+                            reply = "Decrypt an encrypted message sent to you using `/message @[YOUR USERNAME]`." +
+                                    "\n\n> After you generate a public-private key-pair using the `/generate_keys` " +
+                                    "command, other users can encrypt messages and send them to you using the `/message` command." +
+                                    "\n\n```/decrypt_message id:[id]" +
+                                    "\n\nExample: ```/decrypt_message id:1```" +
+                                    "\n\n> If a message exists for you with an id of 1, it will be decrypted using your " +
+                                    "private key.";
                             break;
                         case "message":
-                            reply = "```/message [message text] [discord user] [encryption]```\n" +
-                                    "> Sends an encrypted message to a discord user using specific symmetric-key algorithms\n" +
-                                    "\n**Supported Encryption Algorithms:** AES-128, AES-192, AES-256\n" +
-                                    "Example: `/message Hello World! @user AES-128`\n" +
-                                    " \n```/receive [message id]```\n" +
-                                    "> Decrypts a message sent from another user using the message id received from the CryptoBot\n" +
-                                    "\nExample: `/receive 1`";
-                            ;
+                            reply = "```/message message:[message] user:[Username]```\n" +
+                                    "> Encrypts a message using the recipient’s public key and sends it to them, " +
+                                    "ensuring secure communication through RSA asymmetric encryption.\n\n" +
+                                    "Example: ```/message message:Hello World! user:@jas_0_3```\n";
                             break;
-                        case "receive":
-                            reply = "```/receive [message id]```\n" +
-                                    "Receives a message sent from another user using the message id received from the CryptoBot\n" +
-                                    "Example: `/receive 1`";
+                        case "encrypt":
+                            reply = "## CryptoBot Symmetric-key Encryption\n" +
+                                    "Symmetric-key cryptography is a system where one key is used to both encrypt and decrypt information.\n" +
+                                    "**Supported Encryption Modes:** AES-128, AES-192, AES-256\n" +
+                                    "*the number determines the bits of the outputted secret key (AES-256 -> 256 bits)*\n\n" +
+                                    "```/encrypt type:symmetric message:[message] mode:[encryption type]```\n" +
+                                    "> Allows for messages to be encrypted using specific symmetric-key algorithms.\n\n" +
+                                    "Example: ```/encrypt type:symmetric message:Hello World! mode:AES-128```\n\n" +
+                                    "## CryptoBot Asymmetric-Key Encryption\n" +
+                                    "**Encryption Modes:** RSA \n" +
+                                    "```/encrypt message:[message] type:[type] mode:[mode] key:[key]```\n\n" +
+                                    "> Allows for messages to be encrypted using specific asymmetric-key algorithms. " +
+                                    "Entering mode and key are optional as it defaults to RSA. " +
+                                    "A public-private keypair will be autogenerated for you if one doesn't currently exist.\n\n" +
+                                    "Example: ```/encrypt message:Hello World! type:asymmetric```\n";
                             break;
+                        case "decrypt":
+                            reply = "## CryptoBot Symmetric-key Decryption\n" +
+                                    "Symmetric-key cryptography is a system where one key is used to both encrypt and decrypt information.\n" +
+                                    "```/decrypt type:symmetric message:[message] key:[secret key]```\n" +
+                                    "> Decrypts the message cipher text outputted from CryptoBot with the corresponding secret key.\n\n" +
+                                    "Example: ```/decrypt type:symmetric message:T6ZeaZZibJK6S+wy7iqBCg== key:kLllJ2QlD1HwnnZSERakJw==```\n\n" +
+
+                                    "## CryptoBot Asymmetric-Key Decryption\n" +
+                                    "Asymmetric-key cryptography is a system where a pair of keys is used to encrypt and decrypt information. " +
+                                    "One key is public and can be shared with everyone, while the other key is private and is kept secret.\n\n" +
+                                    "```/decrypt type:asymmetric message:[message] key:[key]```\n\n" +
+                                    "> Decrypts the message cipher text outputted from CryptoBot with the corresponding key. " +
+                                    "If no key is provided, the private key associated with your discord account will be used.\n\n" +
+                                    "Example: ```/decrypt message:bDffmpRQsXwn3Dx1L+uhWax+2JywSxjbBT76BDWeGZMictsh2q4hSQzIEdIUA1lGuSbi" +
+                                    "zu/ZGWqEviQKNam4Qbx5NX86/FcG4q73AwTPxBns46AcfesWmB50nrnnhCCQUc2uCpQB8JVEe/yMkcMcvamh2f1X5njkHvAZq" +
+                                    "AFc4f8= type:asymmetric key:MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAIraK4nTQA3HvqtdfGZ/P" +
+                                    "o6oe/CHZOq5IjdSLOQ1oH+QT1xboReXjKsv/rEiXmIWIxPIDClYoEG/bfLqXkguRYuZ5FiWoxO7HV+9wJof+fvX87nXBlVdt9" +
+                                    "xHm89MIfd2aFhuzjeiSK8KRS+qKIqvcVXwmNaMBCAF6hTz71zrzxapAgMBAAECgYAwlAi0dQiNaasfCBt8PptTzMVjzvKzHid" +
+                                    "G5ISZKNvolUP2o4YWG2rW/3kjXstXlLgb9RqwInYa2o7sdCudJDcnCL6+DWgeVTzaDNbbh4//GtM91fOXO5f9WME25hVGIaEo" +
+                                    "MwuyG2x3kuzuWtugeB0Fp0jfg7ZVL722crZ85qon6wJBAP57j0Xa33u5nQzo6YKj2GbS46JGTniexTbi0NCrY2LlLWBmmS3AF" +
+                                    "N/NuDpbhPl9cjLlWZGR+BhzL1JMW5/Jy9cCQQCLrhzva4q5J5l497UZKch1ikuZjMKXD/UqS7PNBzneVzrL/uNhw6Bz+8alBQ" +
+                                    "0JuZDE+CaGkImWmcqiiUeAbeF/AkAF/NZEKIA1owpk8V39Kum+kZu1h7307JdrUS7kmgO+ofHNYNydzPUwxuBczyZz0FXNiMP" +
+                                    "wvuR9fshQQWeufMsFAkBxD+ZsBeisJtmbiSYV0DRqsB6xk7aPAGO6cLyBYS/+QS1eolr7b5YZS9tnB8ed7463YQYONkConqPf" +
+                                    "HK+7zTWRAkAqybH/6JBiDk72eVD2L0gjXekaqG6JJBOHZ3okBQIU82sQUNiIz7FIwTvZFkuJnryewnkmneIZPJK08DIrGMko```";
+                            break;
+
                         case "hash":
-                            reply = "Hashing is a system where an input (or ‘message’) is taken and returned as a fixed-size string of bytes. The output (or ‘hash’) is unique to each unique input. It’s a one-way function, meaning the data cannot be decrypted back from the hash.\n" +
-                                    "*Examples: MD5, SHA-1, SHA-256, SHA-3, HMAC*\n\n" +
+                            reply = "Hashing is a system where an input (or ‘message’) is taken and returned as a fixed-size string of bytes. " +
+                                    "The output (or ‘hash’) is unique to each unique input. It’s a one-way function, meaning the data cannot be decrypted back from the hash.\n" +
                                     "## Hashing Implementations\n" +
                                     "**Supported Hashing Algorithms:** MD5, SHA-1, SHA-256\n" +
                                     "The name determines the hashing algorithm used (SHA-256 -> SHA-256 algorithm)\n" +
-                                    "```/hash [message] [hashing algorithm]```\n" +
-                                    "> Allows for messages to be hashed using specific algorithms\n" +
-                                    "Example:  `/hash Hello World! SHA-256`\n\n";
-                            break;
-                        case "verify":
-                            reply = "Hashing is a system where an input (or ‘message’) is taken and returned as a fixed-size string of bytes. The output (or ‘hash’) is unique to each unique input. It’s a one-way function, meaning the data cannot be decrypted back from the hash.\n" +
-                                    "*Examples: MD5, SHA-1, SHA-256, SHA-3, HMAC*\n\n" +
-                                    "## Hashing Implementations\n" +
-                                    "**Supported Hashing Algorithms:** MD5, SHA-1, SHA-256\n" +
-                                    "```/verify [message] [hash] [hashing algorithm]```\n" +
-                                    "> Verifies the message with the corresponding hash\n";
+                                    "```/hash message:[message] hash_algorithm:[hashing algorithm]```\n\n" +
+                                    "> Allows for messages to be hashed using specific algorithms\n\n" +
+                                    "Example:  ```/hash message:Hello World! hash_algorithm:SHA-256```\n\n";
                             break;
                         default:
-                            e.reply("An unexpected error occurred! Sorry!").queue();
+                            e.reply("Invalid help page. To view a list of valid commands type ```/help```").queue();
                             throw new IllegalArgumentException("Break towards the default help page");
                     }
                     e.reply("# " + helpCommand.toUpperCase() + " Documentation\n\n" + reply).queue();
@@ -182,18 +201,20 @@ public class BotCommands extends ListenerAdapter {
 
                     // Default full help page
                     e.reply("# Welcome to the help page." +
-                            "\nTo view a more detailed help message for a specific command, type `/help [command]`" +
-                            "\nThe list of valid commands are:" +
-                            "\n\n### `help`\n\tThis help page!\n\tParameters: `[command]`" +
-                            "\n\n### `about`\n\tThe bot command about page!" +
-                            "\n\n### `convert`\n\tConvert data from Type1 to Type2\n\tParameters: `[type1]` `[type2]` `[data]`" +
-                            // TODO might need to change the encrypt and decrypt help when asymmetric is added
-                            "\n\n### `encrypt`\n\tEncrypt a message\n\tParameters: `[type]` `[message]` `[aes]` `[key]`" +
-                            "\n\n### `decrypt`\n\tDecrypt a message\n\tParameters: `[type]` `[message]` `[key]`" +
-                            "\n\n### `message`\n\tEncrypt a message for a user\n\tParameters: `[message]` `[user]` `[encryption]`" +
-                            "\n\n### `receive`\n\tReceive key\n\tParameters: `[ID]`" +
-                            "\n\n### `hash`\n\tHash a message\n\tParameters: `[message]` `[hash_algorithm]`" +
-                            "\n\n### `verify`\n\tVerify a hashed message\n\tParameters: `[message]` `[hash]` `[hash_algorithm]`").queue();
+                            "\nTo view a more detailed help message for a specific command, type: \n\t```/help command:[command]```\n" +
+                            "Example: ```/help command:about```\n\n" +
+                            "> The example command here would display the help documentation on the *about* page.\n" +
+                            "\n## The list of valid commands are:" +
+                            "\n### help\n\tDescription:  This help page!\n\tParameters: `[command]`" +
+                            "\n### about\n\tDescription:  The bot command about page!" +
+                            "\n### convert\n\tDescription:  Convert data from Type1 to Type2\n\tParameters: `[type1]` `[type2]` `[data]`" +
+                            "\n### message\n\tDescription:  Encrypt a message for a user\n\tParameters: `[message]` `[user]`" +
+                            "\n### encrypt\n\tDescription:  Encrypt a message\n\tParameters: `[message]` `[type]` `[mode]` `[key]`" +
+                            "\n### decrypt\n\tDescription:  Decrypt a message\n\tParameters: `[message]` `[type]` `[key]`" +
+                            "\n### generate_keys\n\tDescription:  Generate an asymmetric keypair" +
+                            "\n### get_public_key\n\tDescription:  Get the public key of an asymmetric keypair\n\tParameters: `[user]`" +
+                            "\n### decrypt_message\n\tDescription:  Decrypt a message from another user\n\tParameters: `[id]`" +
+                            "\n### hash\n\tDescription:  Hash a message\n\tParameters: `[message]` `[hash_algorithm]`").queue();
                 }
                 break;
             case "about": // /about
@@ -221,7 +242,7 @@ public class BotCommands extends ListenerAdapter {
                     String hashed_message = DatatypeConverter.printBase64Binary(digestOfMessage);
 
                     reply = "Initial message: `" + message + "`\nHash Algorithm: `"
-                            + hash_algorithm + "`\nHashed Message (in base64): `" + hashed_message + "`";
+                            + hash_algorithm + "`\nHashed Message (in base64): ```" + hashed_message + "```";
 
                 } catch (NoSuchAlgorithmException ex) {
                     e.reply("The specified hashing algorithm `" + hash_algorithm + "` is invalid. Try: MD5, SHA-1 or SHA-256").queue();
@@ -254,7 +275,7 @@ public class BotCommands extends ListenerAdapter {
                 if (reply.length() > 2000) { // discord does not allow messages over 2000 characters, so check that here
                     e.reply("Sorry! The output will be too long. Try shortening your input.").queue();
                 } else {
-                    e.reply(reply).queue(); // reply to the message
+                    e.reply("Converted Message: ```" + reply + "```").queue(); // reply to the message
                 }
 
                 break;
@@ -288,11 +309,11 @@ public class BotCommands extends ListenerAdapter {
                         } else if (e.getOption("key") != null) { // a key was provided by user
                             byte[] inputKeyBytes = e.getOption("key").getAsString().getBytes(); // converts user input key
                             key = new SecretKeySpec(inputKeyBytes, 0, inputKeyBytes.length, "AES"); // gets the key
-                            reply = "Your encrypted message is: " + encryptMessageSymmetric(key, message); // reply message
+                            reply = "Your encrypted message is: ```" + encryptMessageSymmetric(key, message) + "```"; // reply message
                         } else { // auto generates get if none provided
                             key = generateSymmetricKey(Integer.parseInt(mode)); // generates key
                             String keyString = DatatypeConverter.printBase64Binary(key.getEncoded()); //gets string of key to return to user
-                            reply = "Your encrypted message is: " + encryptMessageSymmetric(key, message) + "\n\nYour secret key is: ||" + keyString + "||"; //reply message
+                            reply = "Your encrypted message is: ```" + encryptMessageSymmetric(key, message) + "```\n\nYour secret key is: ```" + keyString + "```"; //reply message
                         }
                     } catch (GeneralSecurityException ex) {
                         reply = "An error occurred. Maybe you put in an invalid key."; // catch message; this should only happen if the key input was invalid
@@ -310,7 +331,7 @@ public class BotCommands extends ListenerAdapter {
                             found = false;
                             for (int i = 0; i < userKeys.size(); i++) {
                                 if (userKeys.get(i).getUser().equals(e.getUser().getId())) {
-                                    reply = "Your encrypted message is: " + userKeys.get(i).encryptMessageAsymmetric(message);
+                                    reply = "Your encrypted message is: ```" + userKeys.get(i).encryptMessageAsymmetric(message) + "```";
                                     found = true;
                                 }
                             }
@@ -323,10 +344,10 @@ public class BotCommands extends ListenerAdapter {
                                 userKeys.add(new UserKey(e.getUser().getId(), privateKey, publicKey));
 
                                 String privateKeyString = DatatypeConverter.printBase64Binary(privateKey.getEncoded());
-                                e.getUser().openPrivateChannel().flatMap(channel -> channel.sendMessage("Your private key is: `" + privateKeyString + "`")).queue();
+                                e.getUser().openPrivateChannel().flatMap(channel -> channel.sendMessage("Your private key is: ```" + privateKeyString + "```")).queue();
 
                                 String publicKeyString = DatatypeConverter.printBase64Binary(publicKey.getEncoded());
-                                reply = "Your encrypted message is: " + UserKey.encryptMessageAsymmetric(publicKey, message) + "\n\nThe public key used to encrypt this is: `" + publicKeyString + "`";
+                                reply = "Your encrypted message is: ```" + UserKey.encryptMessageAsymmetric(publicKey, message) + "```\n\nThe public key used to encrypt this is: ```" + publicKeyString + "```";
                             }
 
                         } else {
@@ -336,7 +357,7 @@ public class BotCommands extends ListenerAdapter {
                             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
                             PublicKey publicKey = keyFactory.generatePublic(keySpec);
 
-                            reply = "Your encrypted message is: " + UserKey.encryptMessageAsymmetric(publicKey, message);
+                            reply = "Your encrypted message is: ```" + UserKey.encryptMessageAsymmetric(publicKey, message) + "```";
                         }
                     } catch (GeneralSecurityException ex) {
                         reply = "An error occurred. Your private key cannot decrypt this message."; // error handling should occur if the user's key can't decrypt the message
@@ -361,7 +382,7 @@ public class BotCommands extends ListenerAdapter {
                         if (e.getOption("key") != null) {  // decodes and uses the provided key for symmetric decryption
                             byte[] keyBytes = Base64.getDecoder().decode(e.getOption("key").getAsString());
                             key = new SecretKeySpec(keyBytes, "AES");
-                            reply = "Your decrypted message is: ||" + decryptMessageSymmetric(key, message) + "||";
+                            reply = "Your decrypted message is: ||```" + decryptMessageSymmetric(key, message) + "```||";
                         } else { // ensures a key is provided for symmetric decryption
                             reply = "You will need to specify a key for symmetric decryption. Add \"key:KEY\" to your command";
                         }
@@ -376,7 +397,7 @@ public class BotCommands extends ListenerAdapter {
                             if (userKeys.get(i).getUser().equals(e.getUser().getId())) {
                                 found = true;
                                 try {
-                                    reply = "Your decrypted message is: " + userKeys.get(i).decryptMessageAsymmetric(message);
+                                    reply = "Your decrypted message is: ||```" + userKeys.get(i).decryptMessageAsymmetric(message) + "```||";
                                 } catch (GeneralSecurityException ex) {
                                     reply = "An error occurred. The private key associated with your ID doesn't decrypt this message.";
                                 }
@@ -396,7 +417,7 @@ public class BotCommands extends ListenerAdapter {
                             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
                             PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
 
-                            reply = "Your decrypted message is: ||" + UserKey.decryptMessageAsymmetric(privateKey, message) + "||";
+                            reply = "Your decrypted message is: ||```" + UserKey.decryptMessageAsymmetric(privateKey, message) + "```||";
                         } catch (GeneralSecurityException ex) { // error handling if the key doesn't work
                             reply = "An error occurred. Either you entered an invalid key, or your key doesn't decrypt this message.";
                         }
@@ -461,8 +482,9 @@ public class BotCommands extends ListenerAdapter {
                         if (userKeys.get(i).getUser().equals(e.getUser().getId())) {
                             found = true;
                             try {
-                                e.reply("The decrypted message is:\n" + userKeys.get(i).decryptMessageAsymmetric(selectedMessage.getCipher())).queue();
-                            } catch (GeneralSecurityException ex) { // error handling if the user's private key can't decrypt the message
+                                e.reply("The decrypted message is:\n||```" + userKeys.get(i).decryptMessageAsymmetric(selectedMessage.getCipher()) + "```||").queue();
+                            } catch (
+                                    GeneralSecurityException ex) { // error handling if the user's private key can't decrypt the message
                                 e.reply("The private key on your ID doesn't work for this message! Either you are not the intended " +
                                         "user for this message, or maybe you regenerated keys.").queue();
                             }
@@ -492,13 +514,13 @@ public class BotCommands extends ListenerAdapter {
                         userKeys.get(spot).setPrivateKey(keyPair.getPrivate());
                         userKeys.get(spot).setPublicKey(keyPair.getPublic());
                         e.getUser().openPrivateChannel().flatMap(channel -> channel.sendMessage("Your old public and private keys are no longer associated with your ID." +
-                                " The new private key is: `" + privateKey + "`")).queue();
+                                " The new private key is: ```" + privateKey + "```")).queue();
                     } else { // creates a new instance in userKeys for the user
                         UserKey userKey = new UserKey(userId, keyPair.getPrivate(), keyPair.getPublic());
-                        e.getUser().openPrivateChannel().flatMap(channel -> channel.sendMessage("Your private key is: `" + privateKey + "`")).queue();
+                        e.getUser().openPrivateChannel().flatMap(channel -> channel.sendMessage("Your private key is: ```" + privateKey + "```")).queue();
                         userKeys.add(userKey);
                     }
-                    e.reply("Your private key has been DM'd to you.\nYour public key is: `" + publicKey + "`").queue();
+                    e.reply("Your private key has been DM'd to you.\nYour public key is: ```" + publicKey + "```").queue();
                 } catch (NoSuchAlgorithmException ex) { // generic error handling incase something goes wrong
                     e.reply("An error occurred! Sorry!").queue();
                 }
@@ -703,7 +725,7 @@ public class BotCommands extends ListenerAdapter {
      * Encrypt a message using symmetric encryption.
      *
      * @param secretKey The key to use in encryption
-     * @param message The message to encrypt
+     * @param message   The message to encrypt
      * @return The ciphertext
      */
     public String encryptMessageSymmetric(SecretKey secretKey, String message) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
@@ -718,7 +740,7 @@ public class BotCommands extends ListenerAdapter {
      * Decrypt a message using symmetric encryption.
      *
      * @param secretKey The key to use in decryption
-     * @param message The ciphertext to decrypt
+     * @param message   The ciphertext to decrypt
      * @return The plaintext
      */
     public static String decryptMessageSymmetric(SecretKey secretKey, String message) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, NoSuchAlgorithmException {
