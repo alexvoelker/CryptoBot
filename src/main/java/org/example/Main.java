@@ -14,6 +14,12 @@ import java.util.Scanner;
 
 public class Main {
     static JDA jda;
+
+    /**
+     * Main method to start the discord bot.
+     *
+     * @param args Arguments passed in
+     */
     public static void main(String[] args) throws InterruptedException, FileNotFoundException {
         // Read in the bot key from the file "BOT_KEY" in the project root directory ("CryptoBot/")
         Scanner keyReader = new Scanner(new File("BOT_KEY"));
